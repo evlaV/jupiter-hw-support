@@ -1,3 +1,3 @@
 # Required for Jupiter
 
-GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} iommu=off amdgpu.pg_mask=0xfffffffe"
+GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} iommu=off amdgpu.pg_mask=0xfffffffe module_blacklist=rtw88_core"
