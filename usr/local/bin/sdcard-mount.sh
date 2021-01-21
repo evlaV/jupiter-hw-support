@@ -22,6 +22,12 @@ DEVICE="/dev/${DEVBASE}"
 # See if this drive is already mounted, and if so where
 MOUNT_POINT=$(/bin/mount | /bin/grep ${DEVICE} | /usr/bin/awk '{ print $3 }')
 
+# From https://gist.github.com/HazCod/da9ec610c3d50ebff7dd5e7cac76de05
+urlencode()
+{
+    [ -z "$1" ] || echo -n "$@" | hexdump -v -e '/1 "%02x"' | sed 's/\(..\)/%\1/g'
+}
+
 do_mount()
 {
     if [[ -n ${MOUNT_POINT} ]]; then
@@ -50,8 +56,13 @@ do_mount()
     OPTS="rw,relatime"
 
     # File system type specific mount options
-    if [[ ${ID_FS_TYPE} == "vfat" ]]; then
-        OPTS+=",users,gid=100,umask=000,shortname=mixed,utf8=1,flush"
+    #if [[ ${ID_FS_TYPE} == "vfat" ]]; then
+    #    OPTS+=",users,gid=100,umask=000,shortname=mixed,utf8=1,flush"
+    #fi
+
+    # We need symlinks for Steam for now, so only automount ext4 as that'll Steam will format right now
+    if [[ ${ID_FS_TYPE} != "ext4" ]]; then
+      exit 1
     fi
 
     if ! /bin/mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
@@ -60,7 +71,11 @@ do_mount()
         exit 1
     fi
 
+    chown doorstop:doorstop ${MOUNT_POINT}
+
     echo "**** Mounted ${DEVICE} at ${MOUNT_POINT} ****"
+
+    sudo -u doorstop steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
 }
 
 do_unmount()
