@@ -53,7 +53,7 @@ do_mount()
     /bin/mkdir -p ${MOUNT_POINT}
 
     # Global mount options
-    OPTS="rw,relatime"
+    OPTS="rw,noatime"
 
     # File system type specific mount options
     #if [[ ${ID_FS_TYPE} == "vfat" ]]; then
@@ -75,11 +75,19 @@ do_mount()
 
     echo "**** Mounted ${DEVICE} at ${MOUNT_POINT} ****"
 
-    sudo -u doorstop steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
+    # If Steam is running, notify it
+    if pgrep -x "steam" > /dev/null; then
+        sudo -u doorstop steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
+    fi
 }
 
 do_unmount()
 {
+    # If Steam is running, notify it
+    if pgrep -x "steam" > /dev/null; then
+        sudo -u doorstop steam steam://removelibraryfolder/$(eval urlencode ${MOUNT_POINT})
+    fi
+
     if [[ -z ${MOUNT_POINT} ]]; then
         echo "Warning: ${DEVICE} is not mounted"
     else
