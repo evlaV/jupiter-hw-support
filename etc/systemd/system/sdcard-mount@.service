@@ -10,5 +10,5 @@ Description=Mount SD card on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/local/bin/sdcard-mount.sh add %i
-ExecStop=/usr/local/bin/sdcard-mount.sh remove %i
+ExecStart=/usr/lib/hwsupport/sdcard-mount.sh add %i
+ExecStop=/usr/lib/hwsupport/sdcard-mount.sh remove %i
