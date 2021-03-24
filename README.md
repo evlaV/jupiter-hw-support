@@ -5,22 +5,19 @@ Because the original BIOS you have is incompatible with newer ones, you need to 
 First hop:
 
 ```
-$ sudo ./usr/share/jupiter_bios_updater/h2offt 
-$ ./usr/share/jupiter_bios/Test1_sign.fd -all
+$ sudo ./usr/share/jupiter_bios_updater/h2offt ./usr/share/jupiter_bios/Test1_sign.fd -all
 ```
 
 Second hop:
 
 ```
-$ sudo ./usr/share/jupiter_bios_updater/h2offt 
-$ ./usr/share/jupiter_bios/Test2_sign.fd -all
+$ sudo ./usr/share/jupiter_bios_updater/h2offt ./usr/share/jupiter_bios/Test2_sign.fd -all
 ```
 
 Third hop:
 
 ```
-$ sudo ./usr/share/jupiter_bios_updater/h2offt 
-$ ./usr/share/jupiter_bios/F7A0010_sign.fd -all
+$ sudo ./usr/share/jupiter_bios_updater/h2offt ./usr/share/jupiter_bios/F7A0010_sign.fd -all
 ```
 
 That's our most recent image for now and it should greatly improve boot time, as well as plenty of other fixes/changes/regressions.
