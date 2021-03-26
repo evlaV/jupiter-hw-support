@@ -42,11 +42,11 @@ do_mount()
     LABEL=${ID_FS_LABEL}
     if [[ -z "${LABEL}" ]]; then
         LABEL=${DEVBASE}
-    elif /bin/grep -q " /media/${LABEL} " /etc/mtab; then
+    elif /bin/grep -q " /run/media/${LABEL} " /etc/mtab; then
         # Already in use, make a unique one
         LABEL+="-${DEVBASE}"
     fi
-    MOUNT_POINT="/media/${LABEL}"
+    MOUNT_POINT="/run/media/${LABEL}"
 
     echo "Mount point: ${MOUNT_POINT}"
 
@@ -99,7 +99,7 @@ do_unmount()
     # points. This is kind of overkill, but if the drive was unmounted
     # prior to removal we no longer know its mount point, and we don't
     # want to leave it orphaned...
-    for f in /media/* ; do
+    for f in /run/media/* ; do
         if [[ -n $(/usr/bin/find "$f" -maxdepth 0 -type d -empty) ]]; then
             if ! /bin/grep -q " $f " /etc/mtab; then
                 echo "**** Removing mount point $f"
