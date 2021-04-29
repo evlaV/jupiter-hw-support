@@ -5,7 +5,7 @@ then
    systemctl stop sdcard-mount@mmcblk0p1.service
    parted --script /dev/mmcblk0 mklabel gpt mkpart primary 0% 100%
    sync
-   mkfs.ext4 -F /dev/mmcblk0p1
+   mkfs.ext4 -O casefold -F /dev/mmcblk0p1
    sync
    systemctl start sdcard-mount@mmcblk0p1.service
    exit 0
