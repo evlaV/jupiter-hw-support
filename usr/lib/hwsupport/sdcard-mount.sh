@@ -77,7 +77,7 @@ do_mount()
 
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
-        sudo -u doorstop steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
+        sudo -u doorstop /home/doorstop/.steam/root/ubuntu12_32/steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
     fi
 }
 
@@ -85,7 +85,7 @@ do_unmount()
 {
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
-        sudo -u doorstop steam steam://removelibraryfolder/$(eval urlencode ${MOUNT_POINT})
+        sudo -u doorstop /home/doorstop/.steam/root/ubuntu12_32/steam steam://removelibraryfolder/$(eval urlencode ${MOUNT_POINT})
     fi
 
     if [[ -z ${MOUNT_POINT} ]]; then
