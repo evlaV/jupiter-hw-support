@@ -7,14 +7,14 @@ if lsmod | grep -q snd_soc_acp5x_mach; then
   elif [[ ${1-} = "post" ]]; then
     modprobe snd_pci_acp5x
     sleep 2
-    amixer -c 1 set "Left AMP Enable" unmute
-    amixer -c 1 set "Right AMP Enable" unmute
+    amixer -c acp5x set "Left AMP Enable" unmute
+    amixer -c acp5x set "Right AMP Enable" unmute
 
-    amixer -c 1 set "Left AMP PCM Gain" 70%
-    amixer -c 1 set "Right AMP PCM Gain" 70%
+    amixer -c acp5x set "Left AMP PCM Gain" 70%
+    amixer -c acp5x set "Right AMP PCM Gain" 70%
 
-    amixer -c 1 set "Left Digital PCM" 817
-    amixer -c 1 set "Right Digital PCM" 817
+    amixer -c acp5x set "Left Digital PCM" 817
+    amixer -c acp5x set "Right Digital PCM" 817
   fi
 else
   ## EV1 or without acp5x driver, fixup registers manually
