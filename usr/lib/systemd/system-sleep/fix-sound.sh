@@ -1,6 +1,12 @@
 #!/bin/bash
 
-if lsmod | grep -q snd_soc_acp5x_mach; then
+set -xeuo pipefail
+
+# For reasons I cannot explain, piping lsmod to grep -q here randomly fails sometimes. Some kind of output buffering bug
+# in lsmod?
+lsmod=$(lsmod)
+
+if grep -q snd_soc_acp5x_mach <<< "$lsmod"; then
   ## EV2 with acp5x driver
   if [[ ${1-} = "pre" ]]; then
     modprobe -r snd_pci_acp5x
