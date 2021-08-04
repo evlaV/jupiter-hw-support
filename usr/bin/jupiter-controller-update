@@ -48,6 +48,7 @@ else
   if [[ -z $build_timestamp ]]; then
     info "Warning: Unknown build timestamp"
   fi
+
   if [[ ${build_timestamp:-0} -lt $CURRENT_FIRMWARE_TIMESTAMP ]]; then
     info "Device is running build '$build_timestamp', newest $CURRENT_FIRMWARE_TIMESTAMP, update required"
     needupdate=1
