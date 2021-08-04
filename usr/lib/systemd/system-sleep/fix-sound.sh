@@ -24,7 +24,7 @@ if grep -q snd_soc_acp5x_mach <<< "$lsmod"; then
   fi
 else
   ## EV1 or without acp5x driver, fixup registers manually
-  if [ "${1}" == "post" ]; then
+  if [ "${1-}" == "post" ]; then
     for i in /sys/kernel/debug/regmap/spi-VLV*; do
       /usr/lib/hwsupport/cirrus-fixup.sh $i
     done
