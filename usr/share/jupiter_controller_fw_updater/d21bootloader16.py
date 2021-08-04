@@ -10,6 +10,7 @@ import progressbar
 import struct
 import sys
 import time
+import json
 
 ID_GET_ATTRIBUTES_VALUES    = 0x83
 ID_REBOOT_INTO_ISP          = 0x90
@@ -923,6 +924,34 @@ def info():
         bootloader.info()
     print('SUCCESS')
 
+def get_dev_build_timestamp(dev):
+    hiddev = hid.Device(path=dev['path'])
+
+    msg   = MsgGetAttributes()
+    msg   = bytes(msg)
+    zeros = bytes(0x00 for i in range(len(msg), HID_EP_SIZE))
+
+    hiddev.send_feature_report(bytes([0x00]) + msg + zeros)
+
+    report = hiddev.get_feature_report(0x00, HID_EP_SIZE + 1)
+    report = MsgGetAttributes(reply=report[1:])
+    assert isinstance(report, MsgGetAttributes)
+
+    for tag, value in report.attribs:
+        if tag == HID_ATTRIB_FIRMWARE_BUILD_TIME:
+          return value
+
+@cli.command(name='getdevicesjson')
+def get_devices_json():
+  rawdevs = [ *dog_enumerate(JUPITER_USB_PID), *dog_enumerate(JUPITER_BOOTLOADER_USB_PID) ]
+  devs = [ { **item,
+             'build_timestamp': get_dev_build_timestamp(item),
+             'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
+             'path': item['path'].decode('utf-8') }
+           for item in rawdevs ]
+
+  print(json.dumps(devs))
+
 @cli.command(name='getappbuildtimestamp')
 def get_app_build_timestamp():
     vid = JUPITER_BOOTLOADER_USB_VID
@@ -949,21 +978,7 @@ def get_app_build_timestamp():
         print('ERROR')
         return
 
-    hiddev =  hid.Device(path=devs[0]['path'])
-
-    msg = MsgGetAttributes()
-    msg   = bytes(msg)
-    zeros = bytes(0x00 for i in range(len(msg), HID_EP_SIZE))
-
-    hiddev.send_feature_report(bytes([0x00]) + msg + zeros)
-
-    report = hiddev.get_feature_report(0x00, HID_EP_SIZE + 1)
-    report = MsgGetAttributes(reply=report[1:])
-    assert isinstance(report, MsgGetAttributes)
-
-    for tag, value in report.attribs:
-        if tag == HID_ATTRIB_FIRMWARE_BUILD_TIME:
-            print (str(value) + ' ' + hex(value))
+    print(get_dev_build_timestamp(devs[0]))
     print('SUCCESS')
 
 @cli.command(name='gethwid')
