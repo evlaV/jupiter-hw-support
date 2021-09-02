@@ -21,6 +21,12 @@ if grep -q snd_soc_acp5x_mach <<< "$lsmod"; then
 
     amixer -c acp5x set "Left Digital PCM" 817
     amixer -c acp5x set "Right Digital PCM" 817
+
+    amixer -c acp5x set "Left DSP RX2 Source" ASPRX1
+    amixer -c acp5x set "Right DSP RX1 Source" ASPRX2
+
+    amixer -c acp5x set "Left PCM Source" DSP
+    amixer -c acp5x set "Right PCM Source" DSP
   fi
 else
   ## EV1 or without acp5x driver, fixup registers manually
