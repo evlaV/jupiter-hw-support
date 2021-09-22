@@ -304,6 +304,7 @@ class DogBootloader:
         0x0B : "bad app start address",
         0x0C : "bad app stack address",
         0x0D : "bad app CRC",
+        0x0E : "WDT boot loop"
     }
 
     STATE = {
@@ -400,7 +401,7 @@ class DogBootloader:
 
         for i, position in enumerate(['Primary', 'Secondary']):
             print('\n ** {} Unit **'.format(position))
-            print('Stored unit serial: {}'.format(self.unit_serial[i]))
+            print('Stored board serial: {}'.format(self.board_serial[i]))
             print('Stored hardware ID: {}'.format(self.hardware_id[i]))
             print('MCU unique ID: {:08X} {:08X} {:08X} {:08X}'
                   .format(# BE ordering
@@ -648,7 +649,17 @@ class DogBootloader:
         else:
             serial = None
 
-        return crc, magic, ver, hw_id, serial
+        blob = blob[MAX_SERIAL_LENGTH:]
+        unit_serial_bytes = blob[:MAX_SERIAL_LENGTH]
+        if unit_serial_bytes.find(b'\00') != -1:
+            try:
+                unit_serial = unit_serial_bytes.split(b'\x00')[0].decode('ascii')
+            except:
+                unit_serial = None
+        else:
+            unit_serial = None
+
+        return crc, magic, ver, hw_id, serial, unit_serial
 
     @property
     def firmware_build_time(self):
@@ -665,21 +676,29 @@ class DogBootloader:
 
         return None
 
+    def convert_to_bytes_with_pad(self, input, pad_len):
+        if not isinstance(input, bytes):
+            input = input.encode('ascii')
+
+        assert len(input) + 1 <= pad_len
+        input += bytes(pad_len - len(input)) # This pads w/ zeros
+        return input
+        
 ###############################################################################
-## Unit Serial
+## Board Serial
 ###############################################################################
     @property
-    def unit_serial(self):
+    def board_serial(self):
         blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
-        _, _, _, _, serial_this = self.parse_device_info_blob(blob)
+        _, _, _, _, serial_this, _ = self.parse_device_info_blob(blob)
 
         blob = self.download_blob(BLOB_ID_DEVICE_INFO_OTHER)
-        _, _, _, _, serial_other = self.parse_device_info_blob(blob)
+        _, _, _, _, serial_other, _ = self.parse_device_info_blob(blob)
 
         return serial_this, serial_other
 
-    @unit_serial.setter
-    def unit_serial(self, serial):
+    @board_serial.setter
+    def board_serial(self, serial):
         if not isinstance(serial, tuple):
             serial = serial, serial
 
@@ -687,15 +706,51 @@ class DogBootloader:
             if sn == None:
                 continue
 
-            if not isinstance(sn, bytes):
-                sn = sn.encode('ascii')
+            sn = self.convert_to_bytes_with_pad(sn, MAX_SERIAL_LENGTH)
 
-            assert len(sn) <= MAX_SERIAL_LENGTH
             blob = self.download_blob(blob_id)
-            _, _, _, hw_id, _ = self.parse_device_info_blob(blob)
+            _, _, _, hw_id, _, unit_serial = self.parse_device_info_blob(blob)
+
             blob = struct.pack('<IIII', 0, DEVICE_INFO_MAGIC,
-                               DEVICE_HEADER_VERSION, hw_id) + sn + b'\x00'
+                               DEVICE_HEADER_VERSION, hw_id) + sn
+
+            if unit_serial != None:
+                unit_serial = self.convert_to_bytes_with_pad(unit_serial, MAX_SERIAL_LENGTH)
+                blob += unit_serial
+            
             self.upload_blob(blob_id, blob)
+
+###############################################################################
+## Unit Serial
+###############################################################################
+    @property
+    def unit_serial(self):
+        blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
+        _, _, _, _, _, board_serial = self.parse_device_info_blob(blob)
+
+        return board_serial
+
+    @unit_serial.setter
+    def unit_serial(self, unit_serial):
+
+        if unit_serial == None:
+            return
+
+        unit_serial = self.convert_to_bytes_with_pad(unit_serial, MAX_SERIAL_LENGTH)
+
+        blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
+        _, _, _, hw_id, board_serial, _ = self.parse_device_info_blob(blob)
+
+        if not isinstance(board_serial, bytes):
+            board_serial = board_serial.encode('ascii')
+        board_serial += bytes(MAX_SERIAL_LENGTH - len(board_serial))
+        
+        
+        blob = struct.pack('<IIII', 0, DEVICE_INFO_MAGIC,
+                           DEVICE_HEADER_VERSION, hw_id) + board_serial
+        blob += unit_serial
+            
+        self.upload_blob(BLOB_ID_DEVICE_INFO_THIS, blob)
 
 ###############################################################################
 ## HW ID
@@ -703,10 +758,10 @@ class DogBootloader:
     @property
     def hardware_id(self):
         blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
-        _, _, _, hw_id_this, _ = self.parse_device_info_blob(blob)
+        _, _, _, hw_id_this, _, _ = self.parse_device_info_blob(blob)
 
         blob = self.download_blob(BLOB_ID_DEVICE_INFO_OTHER)
-        _, _, _, hw_id_other, _ = self.parse_device_info_blob(blob)
+        _, _, _, hw_id_other, _, _ = self.parse_device_info_blob(blob)
 
         return hw_id_this, hw_id_other
 
@@ -717,9 +772,14 @@ class DogBootloader:
 
         for _id, blob_id in zip(hw_id, [BLOB_ID_DEVICE_INFO_THIS, BLOB_ID_DEVICE_INFO_OTHER]):
             blob = self.download_blob(blob_id)
-            _, _, _, _, serial = self.parse_device_info_blob(blob)
+            _, _, _, _, serial, unit_serial = self.parse_device_info_blob(blob)
+
+            serial = self.convert_to_bytes_with_pad(serial, MAX_SERIAL_LENGTH)
             blob = struct.pack('<IIII', 0, DEVICE_INFO_MAGIC,
-                               DEVICE_HEADER_VERSION, _id) + serial.encode('ascii') + b'\x00'
+                               DEVICE_HEADER_VERSION, _id) + serial
+            if unit_serial != None:
+                blob += unit_serial
+
             self.upload_blob(blob_id, blob)
 
 ###############################################################################
@@ -1012,9 +1072,9 @@ def set_hardware_id(primary, hardware_id):
 def get_serial(primary):
     with DogBootloader(verbose=True) as bootloader:
         if primary:
-            print ('Serial: {}'.format(bootloader.unit_serial[0]))
+            print ('Serial: {}'.format(bootloader.board_serial[0]))
         else:
-            print ('Serial: {}'.format(bootloader.unit_serial[1]))
+            print ('Serial: {}'.format(bootloader.board_serial[1]))
 
     print('SUCCESS')
 
@@ -1023,12 +1083,25 @@ def get_serial(primary):
 @click.argument('serial', type=str)
 def set_serial(primary, serial):
     with DogBootloader(verbose=True) as bootloader:
-        serial_primary, serial_secondary = bootloader.unit_serial
+        serial_primary, serial_secondary = bootloader.board_serial
         if primary:
             serial_primary = serial
         else:
             serial_secondary = serial
-        bootloader.unit_serial = (serial_primary, serial_secondary)
+        bootloader.board_serial = (serial_primary, serial_secondary)
+    print('SUCCESS')
+
+@cli.command(name='getunitserial')
+def get_serial():
+    with DogBootloader(verbose=True) as bootloader:
+        print ('Unit Serial: {}'.format(bootloader.unit_serial))
+    print('SUCCESS')
+
+@cli.command(name='setunitserial')
+@click.argument('unitserial', type=str)
+def set_unitserial(unitserial):
+    with DogBootloader(verbose=True) as bootloader:
+        bootloader.unit_serial = unitserial
     print('SUCCESS')
 
 @cli.command()
