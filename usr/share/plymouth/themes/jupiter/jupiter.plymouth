@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Jupiter
+Description=Simple device-branded SteamOS splash screen, but rotated
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/steamos/
+ScriptFile=/usr/share/plymouth/themes/jupiter/jupiter.script
