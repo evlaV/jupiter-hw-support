@@ -5,8 +5,8 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-CURRENT_FIRMWARE_TIMESTAMP=1632422754
-CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_614CCB62.bin
+CURRENT_FIRMWARE_TIMESTAMP=1632773394
+CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_61522512.bin
 
 FIRMWARE_TOOL=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 
