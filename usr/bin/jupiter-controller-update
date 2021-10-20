@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-info() { printf "%s\n" "$*" >&2a; }
+info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
 CURRENT_FIRMWARE_TIMESTAMP=1634758971
