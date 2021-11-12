@@ -1,0 +1,171 @@
+#!/bin/bash
+
+set -e
+
+# If found, and --no-beta wasn't explicitly passed, use beta mode.  Set by e.g. foxnet.
+BIOS_BETA_FILE=/run/jupiter-bios-use-beta
+
+# BIOS versions that can be updated and to what
+# 'target'      - specifies what BIOS this version should be updated to
+# 'beta_target' - specifies what BIOS this version should be updated to in --beta mode
+# 'args'        - additional args this update should pass to the updater (not used currently)
+#
+# - BIOS 19+ are EV2 bios, and can carry forward to the newest.
+# - EV1 units no longer supported, BIOS before F7A0006 requires special steps
+BIOS_VERSION_MAP='{
+                    "F7A0019": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0020": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0021": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0022": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0023": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0024": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0025": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0026": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0027": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0028": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0029": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
+                    "F7A0030": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" }
+                  }'
+
+# Bios to attempt to install
+BIOS_FLASHER="/usr/share/jupiter_bios_updater/h2offt"
+# Where the bioses (bi-ii?) live
+BIOS_DIR="/usr/share/jupiter_bios"
+# What to append to the bios name to get the file name
+BIOS_SUFFIX="_sign.fd"
+# Inhibit file. Do nothing if this exists.
+BIOS_INHIBIT_FILE="/foxnet/bios/INHIBIT"
+
+# Util
+info() { echo >&2 "$*"; }
+err()  { info "!! $*"; }
+die() {
+  local errstr
+  if [[ $# -gt 0 ]]; then
+    err "$*"
+    errstr="Error: \"$*\""
+  fi
+  finish 1 false "${errstr:-unknown failure}"
+}
+
+finish() {
+  local exitcode="$1"
+  local changed="$2"
+  local comment="${*:3}"
+  [[ -z $comment ]] || info "$comment"
+  if [[ -n $SALT_STATE ]]; then
+    echo
+    echo "changed=$changed comment='${comment//\'/}'"
+  fi
+  exit "$exitcode"
+}
+
+##
+## Args
+##
+
+checkmode=
+beta=
+# If --no-beta was passed, we don't want to auto-detect beta from /run/jupiter-bios-use-beta
+explicit_no_beta=
+
+usage() {
+  echo >&2 "!! Usage: $0 [--beta] [check]";
+  exit 1
+}
+
+while [[ ${#@} -gt 0 ]]; do
+  arg="$1"
+  if [[ $arg = "check" && -z $checkmode ]]; then
+    checkmode=1
+  elif [[ $arg = "--no-beta" ]]; then
+    beta=
+    explicit_no_beta=1
+  elif [[ $arg = "--beta" ]]; then
+    beta=1
+    explicit_no_beta=
+  else
+    usage
+  fi
+  shift
+done
+
+# Check mode and for BIOS_BETA_FILE
+actionstring="BIOS updates"
+if [[ -z $explicit_no_beta && -z $beta && -e $BIOS_BETA_FILE ]]; then
+  beta=1
+  actionstring="BETA BIOS updates due to $BIOS_BETA_FILE"
+elif [[ -n $beta ]]; then
+  actionstring="BETA BIOS updates"
+fi
+
+##
+## Main
+##
+
+# Die early if inhibited
+[[ ! -f $BIOS_INHIBIT_FILE ]] || die "Bios updates inhibited, no action ($BIOS_INHIBIT_FILE)"
+
+# Print action
+modestring="Performing"
+[[ -z $checkmode ]] || modestring="Checking for"
+info "$modestring $actionstring"
+
+# Read & check curent version
+currentversion="$(cat /sys/devices/virtual/dmi/id/bios_version)"
+echo >&2 "BIOS version: $currentversion"
+[[ -n $currentversion ]] || die "Failed to parse bios version from dmidecode"
+
+# Helper to query the bios version map forwarding $currentversion
+jqmap() { jq --arg currentversion "$currentversion" "$@" <<< "$BIOS_VERSION_MAP"; }
+
+# See if we have an update
+if [[ -n $beta ]]; then
+  # shellcheck disable=SC2016 # Not a shell variable
+  desiredversion=$(jqmap -r '.[$currentversion].beta_target')
+else
+  # shellcheck disable=SC2016 # Not a shell variable
+  desiredversion=$(jqmap -r '.[$currentversion].target')
+fi
+# shellcheck disable=SC2016 # Not a shell variable
+desiredargs=$(jqmap -r '.[$currentversion].args')
+echo >&2 "Desired version: $desiredversion"
+
+# Up to date if none available
+if [[ -z ${desiredversion-} || $desiredversion = null || $desiredargs = null ]]; then
+  finish 0 no 'No updates configured for this bios'
+fi
+
+# No action if we're up-to-date
+if [[ $currentversion = "$desiredversion" ]]; then
+  finish 0 no "Installed bios $currentversion is up-to-date"
+fi
+
+# Only attempt if on battery.  A bug in some BIOS versions results in 'Unknown' here, but that can only be reached in
+# the charging state, sooo.
+#
+# If the unit has no BAT1, just skip the check -- the actual BIOS update tool will reject them, we'll just prompt
+# needlessly, but this is better than leaving dev units out silently.
+ac="$(cat /sys/class/power_supply/BAT1/status || echo "Unknown")"
+[[ $ac = "Charging" || $ac = "Full" || $ac = "Unknown" ]] || finish 2 no "Cannot attempt bios update unless AC is connected"
+
+# Make sure we have the files to install this version
+biosfile="$BIOS_DIR/$desiredversion$BIOS_SUFFIX"
+[[ -x $BIOS_FLASHER ]] || die "Could not find or execute flasher at \"$BIOS_FLASHER\""
+[[ -f "$biosfile" ]] || die "Could not find expected bios at: $biosfile"
+#
+# Update needed
+#
+[[ -z $checkmode ]] || finish 7 yes "Updates available, not applying in check mode"
+
+# Try to flash
+#   Flasher is cwd-sensitive
+cd "$(dirname "$BIOS_FLASHER")"
+# shellcheck disable=SC2206 # desiredargs expanded on purpose
+cmd=("$BIOS_FLASHER" "$biosfile" -all $desiredargs)
+info "Running: " "${cmd[@]@Q}"
+if "${cmd[@]}"; then
+  finish 0 yes "Applied bios update to version $desiredversion"
+fi
+
+die "Attempted to flash bios but failed"
