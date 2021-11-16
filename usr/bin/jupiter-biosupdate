@@ -1,30 +1,33 @@
 #!/bin/bash
-
 set -e
 
 # If found, and --no-beta wasn't explicitly passed, use beta mode.  Set by e.g. foxnet.
 BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 
 # BIOS versions that can be updated and to what
-# 'target'      - specifies what BIOS this version should be updated to
-# 'beta_target' - specifies what BIOS this version should be updated to in --beta mode
-# 'args'        - additional args this update should pass to the updater (not used currently)
+# 'default'      - specifies what BIOS this version should be updated to by default
+# 'samsung'      - specifies what BIOS samsung-memory units should update to
+# 'beta'         - if set, the version to update to with --beta or BIOS_BETA_FILE set
+# 'samsung_beta' - if set, the version to update to with --beta or BIOS_BETA_FILE set for samsung units
+# 'args'         - additional args this update should pass to the updater (not used currently)
 #
 # - BIOS 19+ are EV2 bios, and can carry forward to the newest.
 # - EV1 units no longer supported, BIOS before F7A0006 requires special steps
 BIOS_VERSION_MAP='{
-                    "F7A0019": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0020": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0021": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0022": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0023": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0024": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0025": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0026": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0027": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0028": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0029": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" },
-                    "F7A0030": { "target": "F7A0032", "beta_target": "F7A0032", "args": "" }
+                    "F7A0019": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0020": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0021": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0022": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0023": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0024": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0025": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0026": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0027": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0028": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0029": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0030": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0031": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" },
+                    "F7A0032": { "default": "F7A0033", "samsung": "F7A0029", "beta": null, "samsung_beta": null, "args": "" }
                   }'
 
 # Bios to attempt to install
@@ -111,28 +114,47 @@ modestring="Performing"
 [[ -z $checkmode ]] || modestring="Checking for"
 info "$modestring $actionstring"
 
+# Check for samsung memory
+memory_sns=($(dmidecode | awk '/^[^\t]/ {i=0}; /^Memory Device/ {i=1}; /\tPart Number:/ && i { print $3 }' | uniq))
+[[ ${#memory_sns[@]} -eq 1 ]] || die "Couldn't identify this unit from DMI, unexpected memory serials: ${memory_sns[*]}"
+
+# Samsung memory modules have S/Ns beginning with K3L
+samsung=""
+[[ ${memory_sns[0]:0:3} != K3L ]] || samsung=1
+
 # Read & check curent version
 currentversion="$(cat /sys/devices/virtual/dmi/id/bios_version)"
 echo >&2 "BIOS version: $currentversion"
 [[ -n $currentversion ]] || die "Failed to parse bios version from dmidecode"
 
-# Helper to query the bios version map forwarding $currentversion
-jqmap() { jq --arg currentversion "$currentversion" "$@" <<< "$BIOS_VERSION_MAP"; }
+# Helper to query the bios version map for currentversion+field (with needlessly wordy variable escaping since current
+# version is an arbitrary string that has contained bad characters historically)
+configfield() {
+  local currentversion=$1
+  local field=$2
+  jq -r --arg currentversion "$currentversion" --arg field "$field" \
+     '.[$currentversion] | .[$field] | select(type == "string")' <<< "$BIOS_VERSION_MAP"
+}
 
-# See if we have an update
-if [[ -n $beta ]]; then
-  # shellcheck disable=SC2016 # Not a shell variable
-  desiredversion=$(jqmap -r '.[$currentversion].beta_target')
+# Check config table for desired version
+if [[ -n $samsung ]]; then
+  desiredversion=$(configfield "$currentversion" "samsung")
+  desiredversion_beta=$(configfield "$currentversion" "samsung_beta")
 else
-  # shellcheck disable=SC2016 # Not a shell variable
-  desiredversion=$(jqmap -r '.[$currentversion].target')
+  desiredversion=$(configfield "$currentversion" "samsung")
+  desiredversion_beta=$(configfield "$currentversion" "samsung_beta")
 fi
-# shellcheck disable=SC2016 # Not a shell variable
-desiredargs=$(jqmap -r '.[$currentversion].args')
-echo >&2 "Desired version: $desiredversion"
 
-# Up to date if none available
-if [[ -z ${desiredversion-} || $desiredversion = null || $desiredargs = null ]]; then
+# If beta is set and the beta value for this bios is not null, use it.
+[[ -z $beta || -z $desiredversion_beta ]] || desiredversion=$desiredversion_beta
+
+# Args aren't differentiated by samsung/beta/etc currently
+desiredargs=$(configfield "$currentversion" "args")
+
+echo >&2 "Desired version: ${desiredversion:-<none>}"
+
+# Up to date if none available or already matching
+if [[ -z $desiredversion || $desiredversion = $currentversion ]]; then
   finish 0 no 'No updates configured for this bios'
 fi
 
