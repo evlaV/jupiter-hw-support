@@ -141,8 +141,8 @@ if [[ -n $samsung ]]; then
   desiredversion=$(configfield "$currentversion" "samsung")
   desiredversion_beta=$(configfield "$currentversion" "samsung_beta")
 else
-  desiredversion=$(configfield "$currentversion" "samsung")
-  desiredversion_beta=$(configfield "$currentversion" "samsung_beta")
+  desiredversion=$(configfield "$currentversion" "default")
+  desiredversion_beta=$(configfield "$currentversion" "beta")
 fi
 
 # If beta is set and the beta value for this bios is not null, use it.
