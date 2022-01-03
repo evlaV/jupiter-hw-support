@@ -27,6 +27,15 @@ if grep -q snd_soc_acp5x_mach <<< "$lsmod"; then
 
     amixer -c acp5x set "Left PCM Source" DSP
     amixer -c acp5x set "Right PCM Source" DSP
+
+    amixer -c acp5x set "Headset Mic Switch" 0
+    amixer -c acp5x set "Int Mic Switch" 1
+    amixer -c acp5x set "Dmic Enable Switch" 1
+
+    amixer -c acp5x set "Frontend PGA Volume" 27
+    amixer -c acp5x set "ADC Phase Switch" 1
+
+    amixer -c acp5x set "BIQ Coefficients" 0x03,0x5a,0x00,0x06,0xfc,0xac,0x00,0x00,0xfe,0x58,0x00,0x00,0x03,0x50,0x00,0x06,0xfe,0x58,0x00,0x08
   fi
 else
   ## EV1 or without acp5x driver, fixup registers manually
