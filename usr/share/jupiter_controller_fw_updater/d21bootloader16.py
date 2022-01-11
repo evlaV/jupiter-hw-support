@@ -395,7 +395,7 @@ class DogBootloader:
         print('Path: {}'.format(info['path'].decode()))
         print('VID: 0x{:x}'.format(info['vendor_id']))
         print('PID: 0x{:x}'.format(info['product_id']))
-        print('Firmware Build Time: 0x{:x} ({} UTC)' \
+        print('Bootloader Build Time: 0x{:x} ({} UTC)' \
               .format(self.firmware_build_time,
                       datetime.datetime.utcfromtimestamp(self.firmware_build_time)))
 
@@ -417,6 +417,10 @@ class DogBootloader:
 
         print('----------------------------')
 
+    def timestamp(self):
+        info = hid.enumerate(JUPITER_BOOTLOADER_USB_VID,
+                             JUPITER_BOOTLOADER_USB_PID)[0]
+        print(self.firmware_build_time)
 
     def send(self, msg):
         msg   = bytes(msg)
@@ -778,6 +782,7 @@ class DogBootloader:
             blob = struct.pack('<IIII', 0, DEVICE_INFO_MAGIC,
                                DEVICE_HEADER_VERSION, _id) + serial
             if unit_serial != None:
+                unit_serial = self.convert_to_bytes_with_pad(unit_serial, MAX_SERIAL_LENGTH)
                 blob += unit_serial
 
             self.upload_blob(blob_id, blob)
@@ -982,6 +987,12 @@ def addcrc():
 def info():
     with DogBootloader(verbose=True) as bootloader:
         bootloader.info()
+    print('SUCCESS')
+
+@cli.command(name='getblbuildtimestamp')
+def blbuildtimestamp():
+    with DogBootloader(verbose=True) as bootloader:
+        bootloader.timestamp()
     print('SUCCESS')
 
 def get_dev_build_timestamp(dev):
