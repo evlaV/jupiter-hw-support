@@ -220,7 +220,7 @@ class DogBootloader:
     def find_app_interface_path():
         ifaces = hid.enumerate(VALVE_USB_VID, JUPITER_USB_PID)
 
-        if ifaces and len(ifaces) == 3:
+        if ifaces and len(ifaces) >= 3:
             if sys.platform == 'win32':
                 ifaces = [i for i in ifaces if i['usage_page'] >= 0xFF00]
             else:
