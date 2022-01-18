@@ -1,0 +1,15 @@
+[Unit]
+Description=Jupiter Controller Firmware Update Service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/jupiter-controller-update
+
+# Fail if we cannot update within 90 seconds.
+TimeoutStartSec=90
+TimeoutStopSec=10
+Restart=none
+
+[Install]
+WantedBy=multi-user.target
