@@ -9,7 +9,7 @@ ExecStart=/usr/bin/jupiter-controller-update
 # Fail if we cannot update within 90 seconds.
 TimeoutStartSec=90
 TimeoutStopSec=10
-Restart=none
+Restart=no
 
 [Install]
 WantedBy=multi-user.target

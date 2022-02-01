@@ -10,25 +10,27 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 # 'beta'         - if set, the version to update to with --beta or BIOS_BETA_FILE set
 # 'samsung_beta' - if set, the version to update to with --beta or BIOS_BETA_FILE set for samsung units
 # 'args'         - additional args this update should pass to the updater (not used currently)
+# 'auto'         - whether or not to update with --auto
 #
 # - BIOS 19+ are EV2 bios, and can carry forward to the newest.
 # - EV1 units no longer supported, BIOS before F7A0006 requires special steps
 BIOS_VERSION_MAP='{
-                    "F7A0019": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0020": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0021": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0022": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0023": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0024": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0025": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0026": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0027": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0028": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0029": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0030": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0031": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0032": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" },
-                    "F7A0100": { "default": "F7A0101", "samsung": "F7A0101", "beta": null, "samsung_beta": null, "args": "" }
+                    "F7A0019": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0020": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0021": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0022": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0023": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0024": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0025": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0026": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0027": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0028": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0029": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0030": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0031": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0032": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0100": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0101": { "default": "F7A0102", "samsung": "F7A0102", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
                   }'
 
 # Bios to attempt to install
@@ -70,11 +72,12 @@ finish() {
 
 checkmode=
 beta=
+automode=
 # If --no-beta was passed, we don't want to auto-detect beta from /run/jupiter-bios-use-beta
 explicit_no_beta=
 
 usage() {
-  echo >&2 "!! Usage: $0 [--beta] [check]";
+  echo >&2 "!! Usage: $0 [--beta] [check] [--auto]";
   exit 1
 }
 
@@ -88,6 +91,8 @@ while [[ ${#@} -gt 0 ]]; do
   elif [[ $arg = "--beta" ]]; then
     beta=1
     explicit_no_beta=
+  elif [[ $arg = "--auto" ]]; then
+    automode=1
   else
     usage
   fi
@@ -154,38 +159,51 @@ desiredargs=$(configfield "$currentversion" "args")
 
 echo >&2 "Desired version: ${desiredversion:-<none>}"
 
-# Up to date if none available or already matching
-if [[ -z $desiredversion || $desiredversion = $currentversion ]]; then
+# No updates configured for the current version
+if [[ -z $desiredversion ]]; then
   finish 0 no 'No updates configured for this bios'
 fi
 
-# No action if we're up-to-date
-if [[ $currentversion = "$desiredversion" ]]; then
-  finish 0 no "Installed bios $currentversion is up-to-date"
+# Skip if --auto was specified but "auto": "false" for the current version
+if [[ -n $automode && $(configfield "$currentversion" "auto") != "true" ]]; then
+  finish 0 no "Auto-updates for $currentversion are disabled"
 fi
-
-# Only attempt if on battery.  A bug in some BIOS versions results in 'Unknown' here, but that can only be reached in
-# the charging state, sooo.
-#
-# If the unit has no BAT1, just skip the check -- the actual BIOS update tool will reject them, we'll just prompt
-# needlessly, but this is better than leaving dev units out silently.
-ac="$(cat /sys/class/power_supply/BAT1/status || echo "Unknown")"
-[[ $ac = "Charging" || $ac = "Full" || $ac = "Unknown" ]] || finish 2 no "Cannot attempt bios update unless AC is connected"
 
 # Make sure we have the files to install this version
 biosfile="$BIOS_DIR/$desiredversion$BIOS_SUFFIX"
 [[ -x $BIOS_FLASHER ]] || die "Could not find or execute flasher at \"$BIOS_FLASHER\""
 [[ -f "$biosfile" ]] || die "Could not find expected bios at: $biosfile"
+
 #
 # Update needed
 #
 [[ -z $checkmode ]] || finish 7 yes "Updates available, not applying in check mode"
 
+# Abort if --auto and battery < 20%
+# (for non-auto updates we leave this up to the UI)
+if [[ -n $automode && $(( "$(cat /sys/class/power_supply/BAT1/capacity)" )) -lt 20 ]]; then
+  finish 2 no "Cannot attempt bios update on <= 20% battery"
+fi
+
+# Don't retry auto-updates more than once per 24 hours
+if [[ -n $automode ]]; then
+  last_auto_attempt_path="/var/lib/jupiter-biosupdate/last_auto_attempt_$desiredversion"
+  last_auto_attempt=$(cat "$last_auto_attempt_path" 2> /dev/null || echo "")
+  now=$(date +%s)
+
+  if [[ "$now" -lt $(( "$last_auto_attempt" + 60 * 60 * 24 )) ]]; then
+    finish 0 no "Auto-update to $desiredversion was attempted within the last 24 hours, skipping for now"
+  fi
+
+  mkdir -p "$(dirname "$last_auto_attempt_path")"
+  echo "$now" > "$last_auto_attempt_path"
+fi
+
 # Try to flash
 #   Flasher is cwd-sensitive
 cd "$(dirname "$BIOS_FLASHER")"
 # shellcheck disable=SC2206 # desiredargs expanded on purpose
-cmd=("$BIOS_FLASHER" "$biosfile" -all $desiredargs)
+cmd=("$BIOS_FLASHER" "$biosfile" -all -AC $desiredargs)
 info "Running: " "${cmd[@]@Q}"
 if "${cmd[@]}"; then
   finish 0 yes "Applied bios update to version $desiredversion"
