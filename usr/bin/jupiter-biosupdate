@@ -200,14 +200,25 @@ if [[ -n $automode ]]; then
   echo "$now" > "$last_auto_attempt_path"
 fi
 
+# Run with -N outside --auto mode
+if [[ -z $automode ]]; then
+  desiredargs="-N $desiredargs"
+fi
+
 # Try to flash
 #   Flasher is cwd-sensitive
 cd "$(dirname "$BIOS_FLASHER")"
+
 # shellcheck disable=SC2206 # desiredargs expanded on purpose
 cmd=("$BIOS_FLASHER" "$biosfile" -all -AC $desiredargs)
 info "Running: " "${cmd[@]@Q}"
-if "${cmd[@]}"; then
-  finish 0 yes "Applied bios update to version $desiredversion"
-fi
+ret=0
+"${cmd[@]}" || ret=$?
 
-die "Attempted to flash bios but failed"
+if [[ $ret = 0 ]]; then
+  finish 0 yes "Applied bios update to version $desiredversion"
+elif [[ $ret = 194 ]]; then
+  finish 0 yes "Will apply bios update to version $desiredversion after reboot"
+else
+  die "Attempted to flash bios but failed"
+fi
