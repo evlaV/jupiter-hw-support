@@ -174,10 +174,11 @@ biosfile="$BIOS_DIR/$desiredversion$BIOS_SUFFIX"
 [[ -x $BIOS_FLASHER ]] || die "Could not find or execute flasher at \"$BIOS_FLASHER\""
 [[ -f "$biosfile" ]] || die "Could not find expected bios at: $biosfile"
 
-#
 # Update needed
-#
-[[ -z $checkmode ]] || finish 7 yes "Updates available, not applying in check mode"
+if [[ -n $checkmode ]]; then
+  echo "$desiredversion"
+  finish 7 yes "Updates available, not applying in check mode"
+fi
 
 # Abort if --auto and battery < 20%
 # (for non-auto updates we leave this up to the UI)
