@@ -5,11 +5,18 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-CURRENT_FIRMWARE_TIMESTAMP=1646259143
-CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_621FEBC7.bin
+CURRENT_FIRMWARE_TIMESTAMP=1645057604
+CURRENT_FIRMWARE_FILE_PRIMARY=EV2_REL_6202E9D2.bin
+CURRENT_FIRMWARE_FILE_SECONDARY=EV2_D20_REL_6202E9D2.bin
+CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_620D9644.bin
+FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
+FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
 
-FIRMWARE_TOOL=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 
+# Start with this tool -- it will suffice for getting the HW ID which is required
+FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_1
+
+JQ=jq
 checkmode=""
 
 if [[ $# -eq 1 && ${1-} = "--check" ]]; then
@@ -20,11 +27,15 @@ fi
 
 # Enumerate devices
 devs=$("$FIRMWARE_TOOL" getdevicesjson) || die "Failed to enumerate devices"
-devjq() { jq "$@" <<< "$devs"; }
+devjq() { $JQ "$@" <<< "$devs"; }
 
-# If multiple, no action (some dev situation?)
+# Is the first device enumerating as a Bootloader?
+bootloader=$(devjq '.[0].is_bootloader | select(. != null)')
+
+# If multiple devices, no action if not bootlaoder (some dev situation w/ multiple controllers?)
+# The Type 2 bootloader presents as 2x interfaces, so don't exit if this looks like a bootlaoder
 count=$(devjq 'length')
-if [[ $count -gt 1 ]]; then
+if [[ $count -gt 1 && $bootloader = "false" ]]; then
   info "Multiple devices found, not performing check/update:"
   devjq >&2
   exit 1
@@ -32,11 +43,35 @@ elif [[ $count -lt 1 ]]; then
   die "No compatible devices found"
 fi
 
-# Bootloader?
-bootloader=$(devjq '.[0].is_bootloader | select(. != null)')
 build_timestamp=$(devjq '.[0].build_timestamp | select(. != null)')
 
-info "Found candidate device, build timestamp ${build_timestamp:-unknown}, bootloader $bootloader"
+# New Bootloader systems are indicated by major release # of 2 (vs. 1 for older). 
+# This is true for both apps and bootloaders which is necessary for this scheme to work.
+new_bootloader=false
+release_number=$(devjq '.[0].release_number')
+major_release=$((release_number>>8))    # Shift to reserve only major version byte
+
+if [[ $major_release -eq 2 ]]; then
+  new_bootloader=true
+  FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_2
+fi
+
+# We need the HW ID to determine if the secondary controller is D21 or D20
+#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27
+#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30
+#   Homog D21 / D21 system    Type 2 BL, Primary HWID = 31if [[ $new_bootloader = "true" ]]; then
+hybrid=false
+if [[ $new_bootloader = "true" ]]; then
+  rsp=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
+  rsp_array=(${rsp})
+  hwid=${rsp_array[0]}
+  info "hwid: ${hwid}"
+  if [[ $hwid -eq 30 ]]; then
+    hybrid=true
+  fi
+fi
+
+info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
 devjq >&2
 
 needupdate=""
@@ -70,10 +105,10 @@ if [[ -n $checkmode ]]; then
 fi
 
 # Otherwise, perform the udpate.
-
 # Add a handler to stop the updater if we die while it is running
 #  (because we can be run as a service, and get SIGTERM'd. The shell does not kill the foreground process in this case.)
 unset update_pid
+
 on_error() {
   ret=$?
   if [[ -n ${update_pid-} ]]; then
@@ -89,8 +124,30 @@ on_error() {
 trap on_error EXIT
 
 # The background+wait is so our exit handler above can kill it if the script itself is asked to stop.  Because bash.
-"$FIRMWARE_TOOL" program "$CURRENT_FIRMWARE_FILE" &
-update_pid=$!
-wait $update_pid
+if [[ $new_bootloader = "true" ]]; then
+
+  if [[ $hybrid = "true" ]]; then
+    info "Updating Hybrid SECONDARY of Type 2 System"
+    "$FIRMWARE_TOOL" program --secondary "$CURRENT_FIRMWARE_FILE_SECONDARY" &
+    update_pid=$!
+    wait $update_pid
+  else 
+    info "Updating Homogeneous SECONDARY of Type 2 System"
+    "$FIRMWARE_TOOL" program --secondary "$CURRENT_FIRMWARE_FILE_PRIMARY" &
+    update_pid=$!
+    wait $update_pid
+  fi
+
+  info "Updating PRIMARY of Type 2 System"
+  "$FIRMWARE_TOOL" program --primary "$CURRENT_FIRMWARE_FILE_PRIMARY" &
+  update_pid=$!
+  wait $update_pid
+else  
+  info "Updating Type 1 System"
+  "$FIRMWARE_TOOL" program "$CURRENT_FIRMWARE_FILE_PRIMARY" &
+  update_pid=$!
+  wait $update_pid
+fi
+
 info "Firmware updated to $CURRENT_FIRMWARE_TIMESTAMP"
 trap - EXIT
