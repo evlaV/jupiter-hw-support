@@ -5,13 +5,19 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+<<<<<<< HEAD
 CURRENT_FIRMWARE_TIMESTAMP=1645057604
 CURRENT_FIRMWARE_FILE_PRIMARY=EV2_REL_6202E9D2.bin
 CURRENT_FIRMWARE_FILE_SECONDARY=EV2_D20_REL_6202E9D2.bin
 CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_620D9644.bin
+=======
+CURRENT_FIRMWARE_TIMESTAMP=1644358098
+CURRENT_FIRMWARE_FILE_D21=EV2_REL_6202E9D2.bin
+CURRENT_FIRMWARE_FILE_D20=EV2_D20_REL_6202E9D2.bin
+
+>>>>>>> 4834761 (Controller FW Upater:)
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
-
 
 # Start with this tool -- it will suffice for getting the HW ID which is required
 FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_1
@@ -32,7 +38,7 @@ devjq() { $JQ "$@" <<< "$devs"; }
 # Is the first device enumerating as a Bootloader?
 bootloader=$(devjq '.[0].is_bootloader | select(. != null)')
 
-# If multiple devices, no action if not bootlaoder (some dev situation w/ multiple controllers?)
+# If multiple devices, no action if not bootloader (some dev situation w/ multiple controllers?)
 # The Type 2 bootloader presents as 2x interfaces, so don't exit if this looks like a bootlaoder
 count=$(devjq 'length')
 if [[ $count -gt 1 && $bootloader = "false" ]]; then
@@ -62,12 +68,14 @@ fi
 #   Homog D21 / D21 system    Type 2 BL, Primary HWID = 31if [[ $new_bootloader = "true" ]]; then
 hybrid=false
 if [[ $new_bootloader = "true" ]]; then
-  rsp=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
-  rsp_array=(${rsp})
-  hwid=${rsp_array[0]}
-  info "hwid: ${hwid}"
+  hwid=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
+  info "HWID: ${hwid}"
   if [[ $hwid -eq 30 ]]; then
     hybrid=true
+  elif [[ $hwid -eq 31 ]]; then
+    hybrid=false
+  else 
+    die "Type 2 BL found w/ unknown Primary HWID: ${hwid}"
   fi
 fi
 
@@ -123,30 +131,28 @@ on_error() {
 }
 trap on_error EXIT
 
+run_firmware_tool() {
+  "$FIRMWARE_TOOL" "$@" &
+  update_pid=$!
+  wait $update_pid
+}
+
 # The background+wait is so our exit handler above can kill it if the script itself is asked to stop.  Because bash.
 if [[ $new_bootloader = "true" ]]; then
 
   if [[ $hybrid = "true" ]]; then
     info "Updating Hybrid SECONDARY of Type 2 System"
-    "$FIRMWARE_TOOL" program --secondary "$CURRENT_FIRMWARE_FILE_SECONDARY" &
-    update_pid=$!
-    wait $update_pid
+    run_firmware_tool program --secondary "$CURRENT_FIRMWARE_FILE_D20"
   else 
     info "Updating Homogeneous SECONDARY of Type 2 System"
-    "$FIRMWARE_TOOL" program --secondary "$CURRENT_FIRMWARE_FILE_PRIMARY" &
-    update_pid=$!
-    wait $update_pid
+    run_firmware_tool program --secondary "$CURRENT_FIRMWARE_FILE_D21"
   fi
 
   info "Updating PRIMARY of Type 2 System"
-  "$FIRMWARE_TOOL" program --primary "$CURRENT_FIRMWARE_FILE_PRIMARY" &
-  update_pid=$!
-  wait $update_pid
+  run_firmware_tool program --primary "$CURRENT_FIRMWARE_FILE_D21"
 else  
   info "Updating Type 1 System"
-  "$FIRMWARE_TOOL" program "$CURRENT_FIRMWARE_FILE_PRIMARY" &
-  update_pid=$!
-  wait $update_pid
+  run_firmware_tool program "$CURRENT_FIRMWARE_FILE_D21"
 fi
 
 info "Firmware updated to $CURRENT_FIRMWARE_TIMESTAMP"
