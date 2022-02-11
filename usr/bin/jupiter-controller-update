@@ -63,9 +63,10 @@ if [[ $major_release -eq 2 ]]; then
 fi
 
 # We need the HW ID to determine if the secondary controller is D21 or D20
-#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27
-#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30
-#   Homog D21 / D21 system    Type 2 BL, Primary HWID = 31if [[ $new_bootloader = "true" ]]; then
+#   For Type 1 bootloader we have all the info we need. Only the orig. D21 / D21 system has that BL
+#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27 (provided for reference)
+#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30  
+#   Homog  D21 / D21 system   Type 2 BL, Primary HWID = 31
 hybrid=false
 if [[ $new_bootloader = "true" ]]; then
   hwid=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
