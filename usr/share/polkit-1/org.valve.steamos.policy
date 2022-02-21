@@ -7,7 +7,7 @@
   <vendor>Valve SteamOS</vendor>
   <vendor_url>http://www.steampowered.com</vendor_url>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-format-sdcard">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-format-sdcard">
     <description>Run the steamos sdcard helper</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -15,10 +15,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-format-sdcard</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-format-sdcard</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-reboot-other">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-reboot-other">
     <description>Run the steamos reboot helper</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -26,10 +26,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-reboot-other</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-reboot-other</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-update">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-update">
     <description>Run the steamos update helper</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -37,10 +37,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-update</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-update</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-jupiter-biosupdate">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers/jupiter-biosupdate">
     <description>Run the jupiter bios update helper</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -48,10 +48,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-jupiter-biosupdate</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/jupiter-biosupdate</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-factory-reset-config">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-factory-reset-config">
     <description>Run the steamos factory reset helper</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -59,10 +59,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-factory-reset-config</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-factory-reset-config</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-jupiter-get-als-gain">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers/jupiter-get-als-gain">
     <description>Get the jupiter ALS gain calibration data from bios</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -70,10 +70,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-jupiter-get-als-gain</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/jupiter-get-als-gain</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-set-hostname">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-set-hostname">
     <description>Set the hostname</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -81,10 +81,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-set-hostname</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-set-hostname</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-set-timezone">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-set-timezone">
     <description>Set the timezone</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -92,10 +92,10 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-set-timezone</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-set-timezone</annotate>
   </action>
 
-  <action id="org.valve.policykit.steamos.pkexec.run-p-steamos-priv-write">
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-steamos-priv-write">
     <description>Helper to write to a set of device nodes</description>
     <icon_name>package-x-generic</icon_name> 
     <defaults>
@@ -103,7 +103,7 @@
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/p-steamos-priv-write</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/steamos-priv-write</annotate>
   </action>
 
 </policyconfig>
