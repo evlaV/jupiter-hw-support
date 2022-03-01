@@ -248,7 +248,7 @@ class DogBootloader:
                 return True
             #
             # Libhidapi won't be able to find interface number on
-            # Windows when enumerating devices with a signle
+            # Windows when enumerating devices with a single
             # interface. So to make this work with D21 devices we add
             # the following clause.
             #
