@@ -12,8 +12,8 @@ CURRENT_FIRMWARE_FILE_SECONDARY=EV2_D20_REL_6202E9D2.bin
 CURRENT_FIRMWARE_FILE=/usr/share/jupiter_controller_fw_updater/EV2_REL_620D9644.bin
 =======
 CURRENT_FIRMWARE_TIMESTAMP=1646163807
-CURRENT_FIRMWARE_FILE_D21=EV2_REL_621E775F.bin
-CURRENT_FIRMWARE_FILE_D20=EV2_D20_REL_621E7760.bin
+CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_621E775F.bin
+CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_621E7760.bin
 
 >>>>>>> 4834761 (Controller FW Upater:)
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
