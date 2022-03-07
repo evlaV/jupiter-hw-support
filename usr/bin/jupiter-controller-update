@@ -102,6 +102,9 @@ fi
 # Done if check mode
 if [[ -n $checkmode ]]; then
   info "  --check specified, not performing update"
+  if [[ $bootloader = "true" ]]; then
+    "$FIRMWARE_TOOL" reset 
+  fi
   # status code 7 to determine update-needed in check mode, vs general failure
   exit 7
 fi
@@ -144,6 +147,7 @@ if [[ $new_bootloader = "true" ]]; then
 
   info "Updating PRIMARY of Type 2 System"
   run_firmware_tool program --primary "$CURRENT_FIRMWARE_FILE_D21"
+
 else  
   info "Updating Type 1 System"
   run_firmware_tool program "$CURRENT_FIRMWARE_FILE_D21"
