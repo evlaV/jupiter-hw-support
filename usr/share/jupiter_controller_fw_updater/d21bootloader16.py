@@ -35,6 +35,7 @@ ID_FIRMWARE_UPDATE_REBOOT   = 0x95
 HID_ATTRIB_PRODUCT_ID          = 1
 HID_ATTRIB_FIRMWARE_BUILD_TIME = 4
 HID_ATTRIB_BOARD_REVISION      = 9
+HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME = 12
 
 ID_ALL_COMMANDS = (ID_GET_ATTRIBUTES_VALUES,
                    ID_REBOOT_INTO_ISP,
@@ -1051,15 +1052,21 @@ def get_dev_build_timestamp(dev):
     report = MsgGetAttributes(reply=report[1:])
     assert isinstance(report, MsgGetAttributes)
 
+    primary_timestamp = 0
+    secondary_timestamp = 0
     for tag, value in report.attribs:
         if tag == HID_ATTRIB_FIRMWARE_BUILD_TIME:
-          return value
+          primary_timestamp = value
+        elif tag == HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME:
+          secondary_timestamp = value
+    return primary_timestamp, secondary_timestamp
 
 @cli.command(name='getdevicesjson')
 def get_devices_json():
   rawdevs = [ *dog_enumerate(JUPITER_USB_PID), *dog_enumerate(JUPITER_BOOTLOADER_USB_PID) ]
   devs = [ { **item,
-             'build_timestamp': get_dev_build_timestamp(item),
+             'build_timestamp': get_dev_build_timestamp(item)[0],
+             'secondary_build_timestamp': get_dev_build_timestamp(item)[1],
              'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
              'path': item['path'].decode('utf-8') }
            for item in rawdevs ]
@@ -1092,7 +1099,7 @@ def get_app_build_timestamp():
         print('ERROR')
         return
 
-    print(get_dev_build_timestamp(devs[0]))
+    print(get_dev_build_timestamp(devs[0])[0])
     print('SUCCESS')
 
 @cli.command(name='gethwid')

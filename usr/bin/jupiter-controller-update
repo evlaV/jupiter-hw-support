@@ -43,6 +43,7 @@ elif [[ $count -lt 1 ]]; then
 fi
 
 build_timestamp=$(devjq '.[0].build_timestamp | select(. != null)')
+secondary_build_timestamp=$(devjq '.[0].secondary_build_timestamp | select(. != null)')
 
 # New Bootloader systems are indicated by major release # of 2 (vs. 1 for older). 
 # This is true for both apps and bootloaders which is necessary for this scheme to work.
@@ -81,11 +82,10 @@ needupdate=""
 if [[ $bootloader = "true" ]]; then
   info "Device is in bootloader mode, update required"
   needupdate=1
+elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]]; then
+    info "Device has missing build timestamp, update required"
+    needupdate=1
 else
-  if [[ -z $build_timestamp ]]; then
-    info "Warning: Unknown build timestamp"
-  fi
-
   if [[ ${build_timestamp:-0} -lt $CURRENT_FIRMWARE_TIMESTAMP ]]; then
     info "Device is running build '$build_timestamp', newest $CURRENT_FIRMWARE_TIMESTAMP, update required"
     needupdate=1
@@ -97,7 +97,10 @@ else
 fi
 
 # If no update needed, reset to app from bootloader. Then done.
-[[ -n $needupdate ]] || "$FIRMWARE_TOOL" reset || exit 0
+if [[ -z $needupdate ]]; then
+  "$FIRMWARE_TOOL" reset
+   exit 0
+fi
 
 # Done if check mode
 if [[ -n $checkmode ]]; then

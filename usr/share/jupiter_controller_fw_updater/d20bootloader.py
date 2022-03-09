@@ -50,7 +50,6 @@ ID_GET_UNIQUE_ID            = 0xB6
 HID_ATTRIB_PRODUCT_ID          = 1
 HID_ATTRIB_FIRMWARE_BUILD_TIME = 4
 HID_ATTRIB_BOARD_REVISION      = 9
-HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME = 12
 
 HW_ID_D20_HYBRID = 29
 HW_ID_D21_HYBRID = 30
@@ -192,8 +191,8 @@ class DogBootloaderAttributes:
     ATTR = struct.Struct("<BL")
 
     def __init__(self, blob):
-        self.build_timestamp = None
-        self.secondary_build_timestamp = None
+        self.build_timestamp = 0
+        self.secondary_build_timestamp = 0
 
         blob = bytes(blob)
 
@@ -205,7 +204,6 @@ class DogBootloaderAttributes:
 
             attr = {
                 HID_ATTRIB_FIRMWARE_BUILD_TIME : "build_timestamp",
-                HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME : "secondary_build_timestamp",
                 HID_ATTRIB_BOARD_REVISION: "hardware_id",
             }.get(t)
 
@@ -405,13 +403,11 @@ class DogBootloader:
 
     @property
     def app_build_datetime(self):
-        return datetime.utcfromtimestamp(self.app.build_timestamp) \
-            if self.app.build_timestamp else None
+        return self.attributes.build_timestamp
 
     @property
     def secondary_app_build_datetime(self):
-        return datetime.utcfromtimestamp(self.app.secondary_build_timestamp) \
-            if self.app.secondary_build_timestamp else None
+        return self.attributes.secondary_build_timestamp
 
     def reset(self):
         #
@@ -691,7 +687,8 @@ def getinfo(primary):
 def getdevicesjson():
   rawdevs = [ *dog_enumerate(JUPITER_USB_PID), *dog_enumerate(JUPITER_BOOTLOADER_USB_PID) ]
   devs = [ { **item,
-             'build_timestamp': get_dev_build_timestamp(item),
+             'build_timestamp': get_dev_build_timestamp(item)[0],
+             'secondary_build_timestamp': get_dev_build_timestamp(item)[1],
              'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
              'path': item['path'].decode('utf-8') }
            for item in rawdevs ]
@@ -699,7 +696,8 @@ def getdevicesjson():
   print(json.dumps(devs))
 
 @cli.command()
-def getappbuildtimestamp():
+@click.option('--primary/--secondary', default=True)
+def getappbuildtimestamp(primary):
     vid = VALVE_USB_VID
     pid = JUPITER_USB_PID
 
@@ -724,7 +722,11 @@ def getappbuildtimestamp():
         print('ERROR')
         return
 
-    print(get_dev_build_timestamp(devs[0]))
+    if primary:
+        print(get_dev_build_timestamp(devs[0])[0])
+    else:
+        print(get_dev_build_timestamp(devs[0])[1])
+
     print('SUCCESS')
 
 @cli.command()
