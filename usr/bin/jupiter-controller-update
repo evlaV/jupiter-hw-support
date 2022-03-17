@@ -96,9 +96,8 @@ else
   fi
 fi
 
-# If no update needed, reset to app from bootloader. Then done.
+# If no update needed, then done.
 if [[ -z $needupdate ]]; then
-  "$FIRMWARE_TOOL" reset
    exit 0
 fi
 
