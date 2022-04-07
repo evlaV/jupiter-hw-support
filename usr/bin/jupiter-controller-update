@@ -56,27 +56,9 @@ if [[ $major_release -eq 2 ]]; then
   FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_2
 fi
 
-# We need the HW ID to determine if the secondary controller is D21 or D20
-#   For Type 1 bootloader we have all the info we need. Only the orig. D21 / D21 system has that BL
-#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27 (provided for reference)
-#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30  
-#   Homog  D21 / D21 system   Type 2 BL, Primary HWID = 31
-hybrid=false
-if [[ $new_bootloader = "true" ]]; then
-  hwid=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
-  info "HWID: ${hwid}"
-  if [[ $hwid -eq 30 ]]; then
-    hybrid=true
-  elif [[ $hwid -eq 31 ]]; then
-    hybrid=false
-  else 
-    die "Type 2 BL found w/ unknown Primary HWID: ${hwid}"
-  fi
-fi
-
-info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
 devjq >&2
 
+# Now check if we need to update or not.
 needupdate=""
 
 if [[ $bootloader = "true" ]]; then
@@ -96,10 +78,32 @@ else
   fi
 fi
 
+
 # If no update needed, then done.
 if [[ -z $needupdate ]]; then
    exit 0
 fi
+
+# If Type 2 BL, we need the HW ID to determine if the secondary controller is D21 or D20
+#   For Type 1 bootloader we have all the info we need. Only the orig. D21 / D21 system has that BL
+#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27 (provided for reference)
+#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30  
+#   Homog  D21 / D21 system   Type 2 BL, Primary HWID = 31
+hybrid=false
+if [[ $new_bootloader = "true" ]]; then
+  hwid=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
+  info "HWID: ${hwid}"
+  if [[ $hwid -eq 30 ]]; then
+    hybrid=true
+  elif [[ $hwid -eq 31 ]]; then
+    hybrid=false
+  else 
+    die "Type 2 BL found w/ unknown Primary HWID: ${hwid}"
+  fi
+fi
+
+info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
+
 
 # Done if check mode
 if [[ -n $checkmode ]]; then
