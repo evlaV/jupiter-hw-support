@@ -11,6 +11,18 @@ import struct
 import sys
 import time
 import json
+import logging
+import subprocess
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+LOG.addHandler(ch)
 
 ID_GET_ATTRIBUTES_VALUES    = 0x83
 ID_REBOOT_INTO_ISP          = 0x90
@@ -23,6 +35,7 @@ ID_FIRMWARE_UPDATE_REBOOT   = 0x95
 HID_ATTRIB_PRODUCT_ID          = 1
 HID_ATTRIB_FIRMWARE_BUILD_TIME = 4
 HID_ATTRIB_BOARD_REVISION      = 9
+HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME = 12
 
 ID_ALL_COMMANDS = (ID_GET_ATTRIBUTES_VALUES,
                    ID_REBOOT_INTO_ISP,
@@ -64,10 +77,15 @@ MAX_SERIAL_LENGTH           = 30
 DEVICE_INFO_MAGIC	    = 0xBEEFFACE
 DEVICE_HEADER_VERSION       = 1
 
+HW_ID_D20_HYBRID = 29
+HW_ID_D21_HYBRID = 30
+HW_ID_D21_HOMOG  = 31
+
+
 #
 # To allow working with old 8KB bootloader, some constanst below can be
 # overwritten using environment variables. Specifically you'd want to modify
-# the following settings 
+# the following settings
 #
 # Default values reflect EV2 / 16KB bootloader, settings below are for EV1 / 8KB
 #
@@ -260,9 +278,11 @@ else:
     def dog_enumerate(pid=JUPITER_USB_PID):
         devs = hid.enumerate(JUPITER_BOOTLOADER_USB_VID, pid)
 
+        iface_number = JUPITER_USB_INTERFACE if pid == JUPITER_USB_PID else 0
+
         if len(devs) > 1:
             devs = [d for d in devs if
-                    d['interface_number'] == JUPITER_USB_INTERFACE]
+                    d['interface_number'] == iface_number]
 
         return devs
 
@@ -326,7 +346,7 @@ class DogBootloader:
         0xFF : "disconnected",
     }
 
-    def __init__(self, verbose=False, minimal_init=False):
+    def __init__(self, verbose=False, minimal_init=False, reset=True):
         if minimal_init:
             self.hiddev = hid.Device(JUPITER_BOOTLOADER_USB_VID,
                                      JUPITER_BOOTLOADER_USB_PID)
@@ -336,13 +356,15 @@ class DogBootloader:
             # so we need to select the right one. Ours is the one with
             # vendor usage page, so select it.
             #
-
             dev = dog_enumerate()
             if dev:
-                print('Looks like we are running an app.')
-
-                with hid.Device(path=dev[0]['path']) as self.hiddev:
-                    self._reboot_into_isp()
+                if reset:
+                    LOG.info('Looks like we are running an app. Resetting into bootloader')
+                    with hid.Device(path=dev[0]['path']) as self.hiddev:
+                        self._reboot_into_isp()
+                else:
+                    self.hiddev = hid.Device(path=dev[0]['path'])
+                    return
 
                 dog_wait(pid=JUPITER_BOOTLOADER_USB_PID,
                          message='Switching to ISP mode: ')
@@ -353,8 +375,9 @@ class DogBootloader:
             else:
                 self.hiddev = hid.Device(JUPITER_BOOTLOADER_USB_VID,
                                          JUPITER_BOOTLOADER_USB_PID)
-                self.reset()
-                time.sleep(1)
+                if reset:
+                    self.reset()
+                    time.sleep(1)
 
         self.verbose = verbose
 
@@ -387,35 +410,35 @@ class DogBootloader:
         self._reboot_into_isp()
 
     def info(self):
-        print('Found a D21 bootloader device')
-        print('----------------------------')
+        LOG.info('Found a D21 bootloader device')
+        LOG.info('----------------------------')
         info = hid.enumerate(JUPITER_BOOTLOADER_USB_VID,
                              JUPITER_BOOTLOADER_USB_PID)[0]
 
-        print('Path: {}'.format(info['path'].decode()))
-        print('VID: 0x{:x}'.format(info['vendor_id']))
-        print('PID: 0x{:x}'.format(info['product_id']))
-        print('Bootloader Build Time: 0x{:x} ({} UTC)' \
+        LOG.info('Path: {}'.format(info['path'].decode()))
+        LOG.info('VID: 0x{:x}'.format(info['vendor_id']))
+        LOG.info('PID: 0x{:x}'.format(info['product_id']))
+        LOG.info('Bootloader Build Time: 0x{:x} ({} UTC)' \
               .format(self.firmware_build_time,
                       datetime.datetime.utcfromtimestamp(self.firmware_build_time)))
 
         for i, position in enumerate(['Primary', 'Secondary']):
-            print('\n ** {} Unit **'.format(position))
-            print('Stored board serial: {}'.format(self.board_serial[i]))
-            print('Stored hardware ID: {}'.format(self.hardware_id[i]))
-            print('MCU unique ID: {:08X} {:08X} {:08X} {:08X}'
+            LOG.info('\n ** {} Unit **'.format(position))
+            LOG.info('Stored board serial: {}'.format(self.board_serial[i]))
+            LOG.info('Stored hardware ID: {}'.format(self.hardware_id[i]))
+            LOG.info('MCU unique ID: {:08X} {:08X} {:08X} {:08X}'
                   .format(# BE ordering
                           self.unique_id[i][0],
                           self.unique_id[i][1],
                           self.unique_id[i][2],
                           self.unique_id[i][3]))
-            print('MCU user row: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}'
+            LOG.info('MCU user row: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}'
                   .format(*self.user_row[i]))
 
-            print('MCU bootloader mode reason: {}'.format(self.bootloader_reason[i]))
-            print('MCU state: {}'.format(self.state[i]))
+            LOG.info('MCU bootloader mode reason: {}'.format(self.bootloader_reason[i]))
+            LOG.info('MCU state: {}'.format(self.state[i]))
 
-        print('----------------------------')
+        LOG.info('----------------------------')
 
     def timestamp(self):
         info = hid.enumerate(JUPITER_BOOTLOADER_USB_VID,
@@ -761,11 +784,32 @@ class DogBootloader:
 ###############################################################################
     @property
     def hardware_id(self):
-        blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
-        _, _, _, hw_id_this, _, _ = self.parse_device_info_blob(blob)
+        msg = MsgGetAttributes()
+        self.send(msg)
 
-        blob = self.download_blob(BLOB_ID_DEVICE_INFO_OTHER)
-        _, _, _, hw_id_other, _, _ = self.parse_device_info_blob(blob)
+        report = self.recv()
+
+        assert isinstance(report, MsgGetAttributes)
+
+        hw_id_this = None
+        for tag, value in report.attribs:
+            if tag == HID_ATTRIB_BOARD_REVISION:
+                hw_id_this = value
+
+        if self.hiddev.product != "Steam Controller":
+            if not hw_id_this:
+                blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
+                _, _, _, hw_id_this, _, _ = self.parse_device_info_blob(blob)
+
+            try:
+                blob = self.download_blob(BLOB_ID_DEVICE_INFO_OTHER)
+                _, _, _, hw_id_other, _, _ = self.parse_device_info_blob(blob)
+            except hid.HIDException:
+                # Assume we are talking to D20 bootloader and set
+                # hw_id_other to None
+                hw_id_other = None
+        else:
+            hw_id_other = None
 
         return hw_id_this, hw_id_other
 
@@ -1008,15 +1052,21 @@ def get_dev_build_timestamp(dev):
     report = MsgGetAttributes(reply=report[1:])
     assert isinstance(report, MsgGetAttributes)
 
+    primary_timestamp = 0
+    secondary_timestamp = 0
     for tag, value in report.attribs:
         if tag == HID_ATTRIB_FIRMWARE_BUILD_TIME:
-          return value
+          primary_timestamp = value
+        elif tag == HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME:
+          secondary_timestamp = value
+    return primary_timestamp, secondary_timestamp
 
 @cli.command(name='getdevicesjson')
 def get_devices_json():
   rawdevs = [ *dog_enumerate(JUPITER_USB_PID), *dog_enumerate(JUPITER_BOOTLOADER_USB_PID) ]
   devs = [ { **item,
-             'build_timestamp': get_dev_build_timestamp(item),
+             'build_timestamp': get_dev_build_timestamp(item)[0],
+             'secondary_build_timestamp': get_dev_build_timestamp(item)[1],
              'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
              'path': item['path'].decode('utf-8') }
            for item in rawdevs ]
@@ -1049,19 +1099,26 @@ def get_app_build_timestamp():
         print('ERROR')
         return
 
-    print(get_dev_build_timestamp(devs[0]))
+    print(get_dev_build_timestamp(devs[0])[0])
     print('SUCCESS')
 
 @cli.command(name='gethwid')
 @click.option('--primary/--secondary', default=True)
-def get_hwid(primary):
+@click.option('--clean', is_flag=True, help="Clean output")
+def get_hwid(primary, clean):
     with DogBootloader(verbose=True) as bootloader:
         if primary:
-            print ('HW ID: {}'.format(bootloader.hardware_id[0]))
+            if clean:
+                print(bootloader.hardware_id[0])
+            else:
+                print ('HW ID: {}'.format(bootloader.hardware_id[0]))
+                print('SUCCESS')
         else:
-            print ('HW ID: {}'.format(bootloader.hardware_id[1]))
-
-    print('SUCCESS')
+            if clean:
+                print(bootloader.hardware_id[1])
+            else:
+                print ('HW ID: {}'.format(bootloader.hardware_id[1]))
+                print('SUCCESS')
 
 @cli.command(name='sethwid')
 @click.option('--primary/--secondary', default=True)
@@ -1150,6 +1207,16 @@ def cmd_reset():
 
 if __name__ == '__main__':
     try:
+        with DogBootloader(reset=False) as d:
+            hardware_id = d.hardware_id[0]
+
+        if hardware_id in { HW_ID_D20_HYBRID, HW_ID_D21_HYBRID, HW_ID_D21_HOMOG }:
+            # print(f'Redirecting to d20bootloader.py due to HW ID of {hardware_id}')
+            python = "python" if sys.platform == 'win32' else "python3"
+            ret = subprocess.call([python, os.path.join(os.path.dirname(__file__),
+                                                        "d20bootloader.py")] + sys.argv[1:])
+            sys.exit(ret)
+
         cli()
     except hid.HIDException as e:
         print(e)

@@ -78,25 +78,29 @@ do_mount()
         exit 1
     fi
 
-    chown doorstop:doorstop ${MOUNT_POINT}
+    chown 1000:1000 ${MOUNT_POINT}
 
     echo "**** Mounted ${DEVICE} at ${MOUNT_POINT} ****"
+
+    url=$(urlencode ${MOUNT_POINT})
 
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
         # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
         # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-        sudo -u doorstop /home/doorstop/.steam/root/ubuntu12_32/steam steam://addlibraryfolder/$(eval urlencode ${MOUNT_POINT})
+        systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://addlibraryfolder/${url@Q}"
     fi
 }
 
 do_unmount()
 {
+    url=$(urlencode ${MOUNT_POINT})
+
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
         # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
         # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-        sudo -u doorstop /home/doorstop/.steam/root/ubuntu12_32/steam steam://removelibraryfolder/$(eval urlencode ${MOUNT_POINT})
+        systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://removelibraryfolder/${url@Q}"
     fi
 
     if [[ -z ${MOUNT_POINT} ]]; then

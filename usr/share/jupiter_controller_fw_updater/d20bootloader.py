@@ -12,9 +12,14 @@ import sys
 import time
 import json
 import logging
+import subprocess
 
 from datetime import datetime
 from enum import IntEnum
+
+sys.path.append(os.path.dirname(__file__))
+
+from d21bootloader16 import dog_enumerate, get_dev_build_timestamp
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -45,7 +50,10 @@ ID_GET_UNIQUE_ID            = 0xB6
 HID_ATTRIB_PRODUCT_ID          = 1
 HID_ATTRIB_FIRMWARE_BUILD_TIME = 4
 HID_ATTRIB_BOARD_REVISION      = 9
-HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME = 12
+
+HW_ID_D20_HYBRID = 29
+HW_ID_D21_HYBRID = 30
+HW_ID_D21_HOMOG  = 31
 
 DEBUG_SET_FORCE_CRC_CHECK   = 0x800F
 DEBUG_BOOTLOADER_REASON     = 0x8010
@@ -183,8 +191,8 @@ class DogBootloaderAttributes:
     ATTR = struct.Struct("<BL")
 
     def __init__(self, blob):
-        self.build_timestamp = None
-        self.secondary_build_timestamp = None
+        self.build_timestamp = 0
+        self.secondary_build_timestamp = 0
 
         blob = bytes(blob)
 
@@ -196,7 +204,7 @@ class DogBootloaderAttributes:
 
             attr = {
                 HID_ATTRIB_FIRMWARE_BUILD_TIME : "build_timestamp",
-                HID_ATTRIB_SECONDARY_FIRMWARE_BUILD_TIME : "secondary_build_timestamp",
+                HID_ATTRIB_BOARD_REVISION: "hardware_id",
             }.get(t)
 
             if attr:
@@ -233,12 +241,30 @@ class DogBootloader:
 
     @staticmethod
     def find_mcu_interface_path(mcu):
+        def iface_match_p(i):
+            if i['interface_number'] == mcu:
+                return True
+            #
+            # Libhidapi won't be able to find interface number on
+            # Windows when enumerating devices with a single
+            # interface. So to make this work with D21 devices we add
+            # the following clause.
+            #
+            # Note that will still error out when trying to get
+            # Secondary's interface on D21 since that's not possible
+            # by design (doesn't have one).
+            #
+            elif sys.platform == 'win32' and mcu == 0:
+                return i['interface_number'] == -1
+            else:
+                return False
+
         ifaces = hid.enumerate(VALVE_USB_VID, JUPITER_BOOTLOADER_USB_PID)
-        ifaces = [i for i in ifaces if i['interface_number'] == mcu]
+        ifaces = [i for i in ifaces if iface_match_p(i)]
 
         return ifaces[0]['path']
 
-    def __init__(self, mcu, reset=True):
+    def __init__(self, mcu=DogBootloaderMCU.PRIMARY, reset=True):
         self.mcu = mcu
         #
         # App firmware would have three HID interfaces,
@@ -247,11 +273,14 @@ class DogBootloader:
         #
         path = DogBootloader.find_app_interface_path()
         if path:
-            print('Looks like we are running an app.')
-
-            with hid.Device(path=path) as self.hiddev:
-                self.app = self.attributes
-                self._reboot_into_isp()
+            if reset:
+                LOG.info('Looks like we are running an app. Resetting into bootloader')
+                with hid.Device(path=path) as self.hiddev:
+                    self.app = self.attributes
+                    self._reboot_into_isp()
+            else:
+                self.hiddev = hid.Device(path=path)
+                return
 
             timeout = USB_ENUMERATION_DELAY_S    # seconds
             delay   = 0.1
@@ -374,13 +403,11 @@ class DogBootloader:
 
     @property
     def app_build_datetime(self):
-        return datetime.utcfromtimestamp(self.app.build_timestamp) \
-            if self.app.build_timestamp else None
+        return self.attributes.build_timestamp
 
     @property
     def secondary_app_build_datetime(self):
-        return datetime.utcfromtimestamp(self.app.secondary_build_timestamp) \
-            if self.app.secondary_build_timestamp else None
+        return self.attributes.secondary_build_timestamp
 
     def reset(self):
         #
@@ -539,7 +566,7 @@ class DogBootloader:
 
     @property
     def hardware_id(self):
-        return self.info.hw_id
+        return self.attributes.hardware_id
 
     @hardware_id.setter
     def hardware_id(self, value):
@@ -630,6 +657,13 @@ def dog(primary):
 
 @cli.command()
 @click.option('--primary/--secondary', default=True)
+def getblbuildtimestamp(primary):
+    with dog(primary) as bootloader:
+        print(bootloader.bl_firmware_build_time)
+    print('SUCCESS')
+
+@cli.command()
+@click.option('--primary/--secondary', default=True)
 def erase(primary):
     with dog(primary) as bootloader:
         bootloader.erase()
@@ -649,32 +683,12 @@ def getinfo(primary):
         bootloader.describe()
     print('SUCCESS')
 
-def get_dev_build_timestamp(dev):
-    hiddev = hid.Device(path=dev['path'])
-    cmd    = bytes([ID_GET_ATTRIBUTES_VALUES])
-    zeros  = bytes(0x00 for _ in range(len(cmd), HID_EP_SIZE))
-
-    hiddev.send_feature_report(bytes([0x00]) + cmd + zeros)
-    rsp = hiddev.get_feature_report(0x00, HID_EP_SIZE + 1)
-
-    length = rsp[2]
-    report = rsp[3:3 + length]
-
-    STRUCT = struct.Struct("<BL")
-    for _ in range(length // STRUCT.size):
-        tag, val = STRUCT.unpack(report[:STRUCT.size])
-        report = report[STRUCT.size:]
-
-        if tag == HID_ATTRIB_FIRMWARE_BUILD_TIME:
-            return val
-
-    return None
-
 @cli.command()
 def getdevicesjson():
-  rawdevs = [ *hid.enumerate(VALVE_USB_VID, JUPITER_USB_PID), *hid.enumerate(VALVE_USB_VID, JUPITER_BOOTLOADER_USB_PID)]
+  rawdevs = [ *dog_enumerate(JUPITER_USB_PID), *dog_enumerate(JUPITER_BOOTLOADER_USB_PID) ]
   devs = [ { **item,
-             'build_timestamp': get_dev_build_timestamp(item),
+             'build_timestamp': get_dev_build_timestamp(item)[0],
+             'secondary_build_timestamp': get_dev_build_timestamp(item)[1],
              'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
              'path': item['path'].decode('utf-8') }
            for item in rawdevs ]
@@ -682,7 +696,8 @@ def getdevicesjson():
   print(json.dumps(devs))
 
 @cli.command()
-def getappbuildtimestamp():
+@click.option('--primary/--secondary', default=True)
+def getappbuildtimestamp(primary):
     vid = VALVE_USB_VID
     pid = JUPITER_USB_PID
 
@@ -707,15 +722,23 @@ def getappbuildtimestamp():
         print('ERROR')
         return
 
-    print(get_dev_build_timestamp(devs[0]))
+    if primary:
+        print(get_dev_build_timestamp(devs[0])[0])
+    else:
+        print(get_dev_build_timestamp(devs[0])[1])
+
     print('SUCCESS')
 
 @cli.command()
 @click.option('--primary/--secondary', default=True)
-def gethwid(primary):
+@click.option('--clean', is_flag=True, help="Clean output")
+def gethwid(primary, clean):
     with dog(primary) as bootloader:
-        print(f'HW ID: {bootloader.hardware_id}')
-    print('SUCCESS')
+        if clean:
+            print(bootloader.hardware_id)
+        else:
+            print(f'HW ID: {bootloader.hardware_id}')
+            print('SUCCESS')
 
 @cli.command()
 @click.option('--primary/--secondary', default=True)
@@ -800,6 +823,31 @@ def reset(primary):
 
 if __name__ == '__main__':
     try:
+        with DogBootloader(mcu=DogBootloaderMCU.PRIMARY,
+                           reset=False) as d:
+            hardware_id = d.hardware_id
+
+        if not hardware_id in {
+                #
+                # Assume that if HW ID is not set the user knows what they
+                # are doing and can run correct script against their
+                # flavor of the bootloader
+                #
+                0xFFFF_FFFF,
+                HW_ID_D21_HYBRID,
+                #
+                # We should never see HW_ID_D20_HYBRID on PRIMARY,
+                # but may as well just check for it
+                #
+                HW_ID_D20_HYBRID,
+                HW_ID_D21_HOMOG
+        }:
+            import d21bootloader16
+            # print(f'Redirecting to d21bootloader16.py due to HW ID of {hardware_id}')
+            python = "python" if sys.platform == 'win32' else "python3"
+            ret = subprocess.call([python, d21bootloader16.__file__] + sys.argv[1:])
+            sys.exit(ret)
+
         cli()
     except hid.HIDException as e:
         print(e)
