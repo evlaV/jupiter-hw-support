@@ -5,9 +5,9 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-CURRENT_FIRMWARE_TIMESTAMP=1650590243
-CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62620223.bin
-CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62620223.bin
+CURRENT_FIRMWARE_TIMESTAMP=1651513109
+CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62701715.bin
+CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62701715.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
@@ -68,16 +68,13 @@ elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]]; the
     info "Device has missing build timestamp, update required"
     needupdate=1
 else
-  if [[ ${build_timestamp:-0} -lt $CURRENT_FIRMWARE_TIMESTAMP ]]; then
-    info "Device is running build '$build_timestamp', newest $CURRENT_FIRMWARE_TIMESTAMP, update required"
-    needupdate=1
-  elif [[ ${build_timestamp} -eq $CURRENT_FIRMWARE_TIMESTAMP ]]; then
+  if [[ ${build_timestamp} -eq $CURRENT_FIRMWARE_TIMESTAMP ]]; then
     info "Device is running latest build $CURRENT_FIRMWARE_TIMESTAMP, update NOT required"
   else
-    info "Device is running build '$build_timestamp', newer than available build $CURRENT_FIRMWARE_TIMESTAMP, update NOT required"
+    needupdate=1
+    info "Device is running build '$build_timestamp', updating to build $CURRENT_FIRMWARE_TIMESTAMP"
   fi
 fi
-
 
 # If no update needed, then done.
 if [[ -z $needupdate ]]; then
