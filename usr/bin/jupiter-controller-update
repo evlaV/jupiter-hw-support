@@ -5,9 +5,9 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-CURRENT_FIRMWARE_TIMESTAMP=1648499298
-CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62421A62.bin
-CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62421A6B.bin
+CURRENT_FIRMWARE_TIMESTAMP=1651513109
+CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62701715.bin
+CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62701715.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
@@ -56,7 +56,32 @@ if [[ $major_release -eq 2 ]]; then
   FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_2
 fi
 
-# We need the HW ID to determine if the secondary controller is D21 or D20
+devjq >&2
+
+# Now check if we need to update or not.
+needupdate=""
+
+if [[ $bootloader = "true" ]]; then
+  info "Device is in bootloader mode, update required"
+  needupdate=1
+elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]]; then
+    info "Device has missing build timestamp, update required"
+    needupdate=1
+else
+  if [[ ${build_timestamp} -eq $CURRENT_FIRMWARE_TIMESTAMP ]]; then
+    info "Device is running latest build $CURRENT_FIRMWARE_TIMESTAMP, update NOT required"
+  else
+    needupdate=1
+    info "Device is running build '$build_timestamp', updating to build $CURRENT_FIRMWARE_TIMESTAMP"
+  fi
+fi
+
+# If no update needed, then done.
+if [[ -z $needupdate ]]; then
+   exit 0
+fi
+
+# If Type 2 BL, we need the HW ID to determine if the secondary controller is D21 or D20
 #   For Type 1 bootloader we have all the info we need. Only the orig. D21 / D21 system has that BL
 #   Orig D21/D21 system       Type 1 BL, Primary HWID = 27 (provided for reference)
 #   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30  
@@ -75,31 +100,7 @@ if [[ $new_bootloader = "true" ]]; then
 fi
 
 info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
-devjq >&2
 
-needupdate=""
-
-if [[ $bootloader = "true" ]]; then
-  info "Device is in bootloader mode, update required"
-  needupdate=1
-elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]]; then
-    info "Device has missing build timestamp, update required"
-    needupdate=1
-else
-  if [[ ${build_timestamp:-0} -lt $CURRENT_FIRMWARE_TIMESTAMP ]]; then
-    info "Device is running build '$build_timestamp', newest $CURRENT_FIRMWARE_TIMESTAMP, update required"
-    needupdate=1
-  elif [[ ${build_timestamp} -eq $CURRENT_FIRMWARE_TIMESTAMP ]]; then
-    info "Device is running latest build $CURRENT_FIRMWARE_TIMESTAMP, update NOT required"
-  else
-    info "Device is running build '$build_timestamp', newer than available build $CURRENT_FIRMWARE_TIMESTAMP, update NOT required"
-  fi
-fi
-
-# If no update needed, then done.
-if [[ -z $needupdate ]]; then
-   exit 0
-fi
 
 # Done if check mode
 if [[ -n $checkmode ]]; then

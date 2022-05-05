@@ -664,7 +664,7 @@ class DogBootloader:
         size = struct.calcsize(fmt)
         crc, magic, ver, hw_id = struct.unpack(fmt, blob[:size])
         if magic != DEVICE_INFO_MAGIC or ver != DEVICE_HEADER_VERSION:
-            return crc, magic, ver, hw_id, 'None'
+            return crc, magic, ver, hw_id, 'None', 'None'
         blob = blob[size:]
 
         serial_bytes = blob[:MAX_SERIAL_LENGTH]
@@ -672,9 +672,9 @@ class DogBootloader:
             try:
                 serial = serial_bytes.split(b'\x00')[0].decode('ascii')
             except:
-                serial = None
+                serial = 'None'
         else:
-            serial = None
+            serial = 'None'
 
         blob = blob[MAX_SERIAL_LENGTH:]
         unit_serial_bytes = blob[:MAX_SERIAL_LENGTH]
@@ -682,9 +682,9 @@ class DogBootloader:
             try:
                 unit_serial = unit_serial_bytes.split(b'\x00')[0].decode('ascii')
             except:
-                unit_serial = None
+                unit_serial = 'None'
         else:
-            unit_serial = None
+            unit_serial = 'None'
 
         return crc, magic, ver, hw_id, serial, unit_serial
 
