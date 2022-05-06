@@ -660,9 +660,9 @@ class DogBootloader:
         return reason_this, reason_other
 
     def parse_device_info_blob(self, blob):
-        fmt = '<IIII'
+        fmt = '<IIIII'
         size = struct.calcsize(fmt)
-        crc, magic, ver, hw_id = struct.unpack(fmt, blob[:size])
+        crc, magic, ver, hw_id, _ = struct.unpack(fmt, blob[:size])
         if magic != DEVICE_INFO_MAGIC or ver != DEVICE_HEADER_VERSION:
             return crc, magic, ver, hw_id, 'None', 'None'
         blob = blob[size:]
@@ -796,7 +796,7 @@ class DogBootloader:
             if tag == HID_ATTRIB_BOARD_REVISION:
                 hw_id_this = value
 
-        if self.hiddev.product != "Steam Controller":
+        if self.hiddev.product != "Steam Controller" and self.hiddev.product != "Steam Deck Controller":
             if not hw_id_this:
                 blob = self.download_blob(BLOB_ID_DEVICE_INFO_THIS)
                 _, _, _, hw_id_this, _, _ = self.parse_device_info_blob(blob)
