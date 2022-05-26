@@ -190,4 +190,4 @@ else
   info "Unknown System Type " + $bootloader_type
 fi
 
-- trap - EXIT
+trap - EXIT
