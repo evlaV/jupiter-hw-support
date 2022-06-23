@@ -5,13 +5,14 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+# D21 Date 24-May-2022
 CURRENT_D21_FIRMWARE_TIMESTAMP=1653422865
 CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_628D3B11.bin
 CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_628D3B12.bin
 
-
-CURRENT_RA_FIRMWARE_TIMESTAMP=1653340926
-CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/app_ra_Release.bin
+# RA Date 22-Jun-2022
+CURRENT_RA_FIRMWARE_TIMESTAMP=1655933452
+CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_62b38a0c.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
@@ -65,6 +66,13 @@ elif [[ $major_release -eq 3 ]]; then
   bootloader_type=3
   FIRMWARE_TOOL=$FIRMWARE_TOOL_TYPE_3
 fi
+
+###############################################################################################################################
+# STAGE 1b: Do not do anything presently w/ Type 3 units: ENABLE this exit for Stable Hotfix
+###############################################################################################################################
+#if [[ $bootloader_type} -eq 3 ]]; then
+#  exit 0
+#fi
 
 devjq >&2
 
