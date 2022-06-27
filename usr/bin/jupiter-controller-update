@@ -6,9 +6,9 @@ info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
 # D21 Date 24-May-2022
-CURRENT_D21_FIRMWARE_TIMESTAMP=1653422865
-CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_628D3B11.bin
-CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_628D3B12.bin
+CURRENT_D21_FIRMWARE_TIMESTAMP=1656371852
+CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62BA3A8C.bin
+CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62BA3A8D.bin
 
 # RA Date 22-Jun-2022
 CURRENT_RA_FIRMWARE_TIMESTAMP=1655933452
