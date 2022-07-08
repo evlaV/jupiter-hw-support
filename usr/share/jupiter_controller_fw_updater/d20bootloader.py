@@ -73,23 +73,16 @@ MAX_SERIAL_LENGTH           = 30
 DEVICE_INFO_MAGIC	    = 0xBEEFFACE
 DEVICE_HEADER_VERSION       = 1
 
-FIRMWARE_PAGE_SIZE          = 64
 HID_EP_SIZE                 = 64  # TODO: Can this be read from report descriptor?
-FLASH_SIZE                  = 256 * 1024
-FLASH_END                   = 0x000000000 + FLASH_SIZE
-FLASH_ERASE_SIZE            = 256
-APP_FW_START                = 0x4000
-APP_FW_END                  = FLASH_SIZE - 4 * 1024
-APP_FW_INFO                 = APP_FW_END - 4
-APP_FW_LENGTH               = APP_FW_INFO - APP_FW_START
-
-INFO_OFFSET                 = FLASH_END - 4096
-BLOB_OFFSET                 = INFO_OFFSET + FLASH_ERASE_SIZE
 
 VALVE_USB_VID               = 0x28de
 JUPITER_BOOTLOADER_USB_PID  = 0x1004
 JUPITER_USB_PID             = 0x1205
 JUPITER_CONTROL_INTERFACE   = 2
+
+FLASH_PARTITION_SIZE        = 256 # Size of a unit of data stored in
+                                  # "data" flash. Based on D2x erase
+                                  # row size.
 
 USB_ENUMERATION_DELAY_S     = 5.0
 
@@ -109,9 +102,17 @@ class DogBootloaderVerifyError(Exception):
 class DogBootloaderTimeout(Exception):
     pass
 
+class DogBootloaderNotSupported(Exception):
+    pass
+
 class DogBootloaderMCU(IntEnum):
     PRIMARY = 0
     SECONDARY = 1
+
+class DeviceType(IntEnum):
+    D21_D21 = 0x100
+    D2x_D21 = 0x200
+    RA4     = 0x300
 
 def bytes_to_stripped_ascii(b):
     try:
@@ -120,10 +121,10 @@ def bytes_to_stripped_ascii(b):
         return ""
 
 class DogBootloaderMTEBlob:
-    STRUCT = struct.Struct(f"<IB{FLASH_ERASE_SIZE - CRCLEN - 2}s" +
+    STRUCT = struct.Struct(f"<IB{FLASH_PARTITION_SIZE - CRCLEN - 2}s" +
                            "B" # NULL termination
                            )
-    assert(STRUCT.size == FLASH_ERASE_SIZE)
+    assert(STRUCT.size == FLASH_PARTITION_SIZE)
 
     def __init__(self, blob):
         if isinstance(blob, str):
@@ -131,7 +132,7 @@ class DogBootloaderMTEBlob:
         else:
             crc, _, mte_blob, _ = self.STRUCT.unpack(blob)
 
-            valid = compute_crc(blob[CRCLEN:], FLASH_ERASE_SIZE - 4) == crc
+            valid = compute_crc(blob[CRCLEN:], FLASH_PARTITION_SIZE - 4) == crc
             self.mte_blob = bytes_to_stripped_ascii(mte_blob) if valid else ""
 
     def __str__(self):
@@ -143,7 +144,7 @@ class DogBootloaderMTEBlob:
                                     0x00,
                                     mte_blob,
                                     0x00)
-        return self.STRUCT.pack(compute_crc(blob[CRCLEN:], FLASH_ERASE_SIZE - 4),
+        return self.STRUCT.pack(compute_crc(blob[CRCLEN:], FLASH_PARTITION_SIZE - 4),
                                 0x00,
                                 mte_blob,
                                 0x00)
@@ -157,7 +158,7 @@ class DogBootloaderDeviceInfo:
 
         if magic != DEVICE_INFO_MAGIC     or \
            ver   != DEVICE_HEADER_VERSION or \
-           crc   != compute_crc(blob[CRCLEN:], FLASH_ERASE_SIZE - 4):
+           crc   != compute_crc(blob[CRCLEN:], FLASH_PARTITION_SIZE - 4):
             board_serial = bytes()
             unit_serial  = bytes()
 
@@ -172,7 +173,7 @@ class DogBootloaderDeviceInfo:
         board_serial = self.board_serial.encode("ascii")
         unit_serial  = self.unit_serial.encode("ascii")
 
-        padding = bytes(0xFF for _ in range(0, FLASH_ERASE_SIZE - self.struct.size))
+        padding = bytes(0xFF for _ in range(0, FLASH_PARTITION_SIZE - self.struct.size))
         blob    = self.struct.pack(0x00000000,
                                    DEVICE_INFO_MAGIC,
                                    DEVICE_HEADER_VERSION,
@@ -180,7 +181,7 @@ class DogBootloaderDeviceInfo:
                                    board_serial,
                                    unit_serial)
 
-        return self.struct.pack(compute_crc(blob[CRCLEN:], FLASH_ERASE_SIZE - 4),
+        return self.struct.pack(compute_crc(blob[CRCLEN:], FLASH_PARTITION_SIZE - 4),
                                 DEVICE_INFO_MAGIC,
                                 DEVICE_HEADER_VERSION,
                                 self.hw_id,
@@ -225,7 +226,7 @@ class DogBootloader:
     }
 
     @staticmethod
-    def find_app_interface_path():
+    def find_app_interface():
         ifaces = hid.enumerate(VALVE_USB_VID, JUPITER_USB_PID)
 
         if ifaces and len(ifaces) >= 3:
@@ -234,35 +235,20 @@ class DogBootloader:
             else:
                 ifaces = [i for i in ifaces if
                           i['interface_number'] == JUPITER_CONTROL_INTERFACE]
-
-            return ifaces[0]['path']
+            if ifaces:
+                return ifaces[0]
+            else:
+                return None
 
         return None
 
     @staticmethod
-    def find_mcu_interface_path(mcu):
-        def iface_match_p(i):
-            if i['interface_number'] == mcu:
-                return True
-            #
-            # Libhidapi won't be able to find interface number on
-            # Windows when enumerating devices with a single
-            # interface. So to make this work with D21 devices we add
-            # the following clause.
-            #
-            # Note that will still error out when trying to get
-            # Secondary's interface on D21 since that's not possible
-            # by design (doesn't have one).
-            #
-            elif sys.platform == 'win32' and mcu == 0:
-                return i['interface_number'] == -1
-            else:
-                return False
-
+    def find_mcu_interface(mcu):
         ifaces = hid.enumerate(VALVE_USB_VID, JUPITER_BOOTLOADER_USB_PID)
-        ifaces = [i for i in ifaces if iface_match_p(i)]
+        if len(ifaces) > 1:
+            ifaces = [i for i in ifaces if i['interface_number'] == mcu]
 
-        return ifaces[0]['path']
+        return ifaces[0]
 
     def __init__(self, mcu=DogBootloaderMCU.PRIMARY, reset=True):
         self.mcu = mcu
@@ -271,15 +257,16 @@ class DogBootloader:
         # so we need to select the right one. Ours is the one with
         # vendor usage page, so select it.
         #
-        path = DogBootloader.find_app_interface_path()
-        if path:
+        iface = DogBootloader.find_app_interface()
+        if iface:
+            self.device_type = DeviceType(iface['release_number'])
             if reset:
                 LOG.info('Looks like we are running an app. Resetting into bootloader')
-                with hid.Device(path=path) as self.hiddev:
+                with hid.Device(path=iface['path']) as self.hiddev:
                     self.app = self.attributes
                     self._reboot_into_isp()
             else:
-                self.hiddev = hid.Device(path=path)
+                self.hiddev = hid.Device(path=iface['path'])
                 return
 
             timeout = USB_ENUMERATION_DELAY_S    # seconds
@@ -302,16 +289,41 @@ class DogBootloader:
             #
             time.sleep(USB_ENUMERATION_DELAY_S)
 
-            path = DogBootloader.find_mcu_interface_path(mcu)
-            self.hiddev = hid.Device(path=path)
+            iface = DogBootloader.find_mcu_interface(mcu)
+            self.hiddev = hid.Device(path=iface['path'])
 
         else:
-            path = DogBootloader.find_mcu_interface_path(mcu)
-            self.hiddev = hid.Device(path=path)
+            iface = DogBootloader.find_mcu_interface(mcu)
+            self.device_type = DeviceType(iface['release_number'])
+            self.hiddev = hid.Device(path=iface['path'])
 
             if reset:
                 self.reset()
                 time.sleep(1)
+
+        if self.device_type == DeviceType.RA4:
+            self.FLASH_SIZE       = 256 * 1024
+            self.FLASH_END        = 0x000000000 + self.FLASH_SIZE
+            self.APP_FW_START     = 0x8000
+            self.APP_FW_END       = self.FLASH_SIZE
+            self.APP_FW_INFO      = self.APP_FW_END - 4
+            self.APP_FW_LENGTH    = self.APP_FW_INFO - self.APP_FW_START
+
+            self.DATA_FLASH_START = 0x0800_0000
+            self.DATA_FLASH_END   = 0x0800_0000 + 4 * 1024
+            self.INFO_OFFSET      = self.DATA_FLASH_START
+            self.BLOB_OFFSET      = self.INFO_OFFSET + FLASH_PARTITION_SIZE
+        else:
+            self.FLASH_SIZE       = 256 * 1024
+            self.FLASH_END        = 0x000000000 + self.FLASH_SIZE
+            self.APP_FW_START     = 0x4000
+            self.APP_FW_END       = self.FLASH_SIZE - 4 * 1024
+            self.APP_FW_INFO      = self.APP_FW_END - 4
+            self.APP_FW_LENGTH    = self.APP_FW_INFO - self.APP_FW_START
+
+            self.INFO_OFFSET      = self.FLASH_END - 4096
+            self.BLOB_OFFSET      = self.INFO_OFFSET + FLASH_PARTITION_SIZE
+
 
     def __enter__(self):
         return self
@@ -347,7 +359,7 @@ class DogBootloader:
         return DogBootloaderAttributes(report)
 
     def describe(self):
-        LOG.info("Found a D20/D21 bootloader device")
+        LOG.info(f"Found a {str(self.device_type)} bootloader")
         LOG.info("----------------------------")
         info = hid.enumerate(VALVE_USB_VID,
                              JUPITER_BOOTLOADER_USB_PID)[0]
@@ -364,8 +376,9 @@ class DogBootloader:
         LOG.info(f'Stored hardware ID: {self.hardware_id}')
         LOG.info("MCU unique ID: {:08X} {:08X} {:08X} {:08X}"
                  .format(*self.unique_id))
-        LOG.info("MCU user row: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}"
-                 .format(*self.user_row))
+        if self.device_type != DeviceType.RA4:
+            LOG.info("MCU user row: {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X} {:02X}"
+                     .format(*self.user_row))
 
         LOG.info(f"MCU bootloader mode reason: {self.bootloader_reason}")
         LOG.info("----------------------------")
@@ -438,6 +451,20 @@ class DogBootloader:
         msg = self.hiddev.get_feature_report(0x00, HID_EP_SIZE + 1)
         return msg[1:]
 
+    def get_row_size(self, offset):
+        if self.device_type in (DeviceType.D2x_D21, DeviceType.D21_D21):
+            return FLASH_PARTITION_SIZE
+
+        if self.DATA_FLASH_START <= offset < self.DATA_FLASH_END:
+            return 64
+
+        if offset < 64 * 1024: # This is where flash rows switch layout from 8K to 32K
+            return 8 * 1024
+        elif offset < self.FLASH_END:
+            return 32 * 1024
+
+        assert False, "Invalid offset"
+
     def write_32b(self, offset, data):
         LOG.debug(f"writing data @ 0x{offset:08x}")
         fmt = "<BBI"
@@ -465,37 +492,73 @@ class DogBootloader:
                               struct.calcsize("<I"),
                               offset))
 
-    def erase(self):
-        for offset in range(APP_FW_START, APP_FW_END, FLASH_ERASE_SIZE):
-            self.erase_row(offset)
+    def erase_partition(self, offset):
+        for o in range(offset, offset + FLASH_PARTITION_SIZE,
+                       self.get_row_size(offset)):
+            self.erase_row(o)
 
-    def read_row(self, offset):
+    def erase(self):
+        offset = self.APP_FW_START
+        while offset < self.APP_FW_END:
+            self.erase_row(offset)
+            offset += self.get_row_size(offset)
+
+    def __read(self, offset, readfn, size, chunk):
         row = bytes()
-        for _ in range(0, FLASH_ERASE_SIZE, 32):
-            row    += self.read_32b(offset)
-            offset += 32
+        for _ in range(0, size, chunk):
+            row    += readfn(offset)
+            offset += chunk
         #
         # Needs to be bytearray so it would be modifiable
         #
         return bytearray(row)
 
-    def write_row(self, offset, data):
-        assert len(data) == FLASH_ERASE_SIZE
+    def read_row(self, offset):
+        return self.__read(offset,
+                           self.read_32b,
+                           self.get_row_size(offset),
+                           32)
 
-        for _ in range(0, FLASH_ERASE_SIZE, 32):
-            self.write_32b(offset, data[:32])
-            offset += 32
-            data    = data[32:]
+    def read_partition(self, offset):
+        return self.__read(offset,
+                           self.read_row,
+                           FLASH_PARTITION_SIZE,
+                           self.get_row_size(offset))
+
+    def __write(self, offset, data, writefn, size, chunk):
+        assert len(data) == size
+
+        for _ in range(0, size, chunk):
+            writefn(offset, data[:chunk])
+            offset += chunk
+            data    = data[chunk:]
+
+
+    def write_row(self, offset, data):
+        self.__write(offset, data,
+                     self.write_32b,
+                     self.get_row_size(offset),
+                     32)
+
+    def write_partition(self, offset, data):
+        self.__write(offset, data,
+                     self.write_row,
+                     FLASH_PARTITION_SIZE,
+                     self.get_row_size(offset))
 
     def update_row(self, offset, data):
         self.erase_row(offset)
         self.write_row(offset, data)
 
+    def update_partition(self, offset, data):
+        self.erase_partition(offset)
+        self.write_partition(offset, data)
+
     def download_firmware(self, size):
         LOG.info(f"Download firmware from {self}, size: {size}")
 
         data = bytes()
-        for offset in range(APP_FW_START, APP_FW_START + size, 32):
+        for offset in range(self.APP_FW_START, self.APP_FW_START + size, 32):
             data += self.read_32b(offset)
 
         return data[:size]
@@ -503,66 +566,53 @@ class DogBootloader:
     def update_crc(self, crc):
         crc = bytes(crc)
         assert len(crc) == 4, "We expect 4 byte/32-bit CRC"
-        offset = APP_FW_END - FLASH_ERASE_SIZE
+        offset = self.APP_FW_END - self.get_row_size(self.APP_FW_INFO)
         row = self.read_row(offset)
         row[-len(crc):] = crc
         self.update_row(offset, row)
 
     def do_crc_fixup(self, valid=True):
-        blob = self.download_firmware(size=APP_FW_LENGTH)
-        crc  = bytearray(struct.pack("<I", compute_crc(blob, APP_FW_LENGTH)))
+        blob = self.download_firmware(size=self.APP_FW_LENGTH)
+        crc  = bytearray(struct.pack("<I", compute_crc(blob, self.APP_FW_LENGTH)))
         if not valid:
             crc[0] = ~crc[0] & 0xFF
         self.update_crc(crc)
 
-    def upload_firmware(self, name, populate_crc=True):
+    def upload_firmware(self, name, populate_crc=True, do_readback=False):
         with open(name, "rb") as f:
             blob = f.read()
 
-        assert len(blob) <= APP_FW_LENGTH, \
-            f"Firmware size ({len(blob)}) must be smaller than {APP_FW_LENGTH} bytes"
+        assert len(blob) <= self.APP_FW_LENGTH, \
+            f"Firmware size ({len(blob)}) must be smaller than {self.APP_FW_LENGTH} bytes"
 
+        blob += bytes(0xFF for _ in range(0, self.APP_FW_LENGTH - len(blob)))
+        crc = compute_crc(blob, self.APP_FW_LENGTH) if populate_crc else 0xFFFF_FFFF
+        blob += struct.pack("<I", crc)
         #
-        # Append enough 0xFFs to our firmware blob to make its size a
-        # multiple of FLASH_ERASE_SIZE. We need to erase all unused
-        # space anyway, so this'll help us to keep things simple
+        # Erase everything, then write data
         #
-        if len(blob) % FLASH_ERASE_SIZE:
-            blob += bytes(0xFF for _ in range(0, FLASH_ERASE_SIZE -
-                                              len(blob) % FLASH_ERASE_SIZE))
+        self.erase()
 
         LOG.info(f"Uploading {name} to {self}, size: {len(blob)}")
-        LOG.info("Writing whole erase rows first")
-        for offset in range(0, len(blob), FLASH_ERASE_SIZE):
-            self.update_row(APP_FW_START + offset,
-                            blob[offset : offset + FLASH_ERASE_SIZE])
-        #
-        # Erase the remainder of the Flash, since that's what we
-        # assume when generating APP partition CRC
-        #
-        for offset in range(APP_FW_START + len(blob), APP_FW_END,
-                            FLASH_ERASE_SIZE):
-            self.erase_row(offset)
+        for offset in range(0, len(blob), 32):
+            self.write_32b(self.APP_FW_START + offset, blob[offset : offset + 32])
 
-        LOG.info("Reading written data back for verification")
+        if(do_readback):
+            LOG.info("Reading written data back for verification")
 
-        firmware = self.download_firmware(size=len(blob))
+            firmware = self.download_firmware(size=len(blob))
 
-        if blob != firmware:
-            raise DogBootloaderVerifyError()
-
-        if populate_crc:
-            crc = struct.pack("<I", compute_crc(blob, APP_FW_LENGTH))
-            self.update_crc(crc)
+            if blob != firmware:
+                raise DogBootloaderVerifyError()
 
     @property
     def info(self):
-        return DogBootloaderDeviceInfo(self.read_row(INFO_OFFSET))
+        return DogBootloaderDeviceInfo(self.read_partition(self.INFO_OFFSET))
 
     @info.setter
     def info(self, value):
         assert type(value) is DogBootloaderDeviceInfo
-        self.update_row(INFO_OFFSET, bytes(value))
+        self.update_partition(self.INFO_OFFSET, bytes(value))
 
     @property
     def hardware_id(self):
@@ -606,12 +656,12 @@ class DogBootloader:
 
     @property
     def mte_blob(self):
-        return DogBootloaderMTEBlob(self.read_row(BLOB_OFFSET))
+        return DogBootloaderMTEBlob(self.read_partition(self.BLOB_OFFSET))
 
     @mte_blob.setter
     def mte_blob(self, val):
-        self.update_row(BLOB_OFFSET,
-                        bytes(DogBootloaderMTEBlob(str(val))))
+        self.update_partition(self.BLOB_OFFSET,
+                              bytes(DogBootloaderMTEBlob(str(val))))
 
     def reboot(self, wait_for_app=False):
         self.send([
@@ -623,7 +673,7 @@ class DogBootloader:
             delay   = 0.1
             path     = None
             for i in range(int(timeout / delay)):
-                if DogBootloader.find_app_interface_path():
+                if DogBootloader.find_app_interface():
                     break;
 
                 time.sleep(delay)
@@ -653,7 +703,12 @@ def cli():
 
 def dog(primary):
     mcu = DogBootloaderMCU.PRIMARY if primary else DogBootloaderMCU.SECONDARY
-    return DogBootloader(mcu=mcu)
+    d = DogBootloader(mcu=mcu)
+
+    if mcu == DogBootloaderMCU.SECONDARY and d.device_type != DeviceType.D2x_D21:
+        raise DogBootloaderNotSupported()
+
+    return d
 
 @cli.command()
 @click.option('--primary/--secondary', default=True)
@@ -825,23 +880,9 @@ if __name__ == '__main__':
     try:
         with DogBootloader(mcu=DogBootloaderMCU.PRIMARY,
                            reset=False) as d:
-            hardware_id = d.hardware_id
+            device_type = d.device_type
 
-        if not hardware_id in {
-                #
-                # Assume that if HW ID is not set the user knows what they
-                # are doing and can run correct script against their
-                # flavor of the bootloader
-                #
-                0xFFFF_FFFF,
-                HW_ID_D21_HYBRID,
-                #
-                # We should never see HW_ID_D20_HYBRID on PRIMARY,
-                # but may as well just check for it
-                #
-                HW_ID_D20_HYBRID,
-                HW_ID_D21_HOMOG
-        }:
+        if device_type == DeviceType.D21_D21:
             import d21bootloader16
             # print(f'Redirecting to d21bootloader16.py due to HW ID of {hardware_id}')
             python = "python" if sys.platform == 'win32' else "python3"
@@ -852,6 +893,8 @@ if __name__ == '__main__':
     except hid.HIDException as e:
         print(e)
         print('ERROR')
+    except DogBootloaderNotSupported:
+        print('NOT SUPPORTED')
     except DogBootloaderTimeout:
         print('TIMEOUT')
     except DogBootloaderVerifyError:
