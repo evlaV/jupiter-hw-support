@@ -7,4 +7,4 @@ then
     exec pkexec --disable-internal-agent "$0" "$@"
 fi
 
-exec /var/lib/jupiter-dock-updater/jupiter-dock-updater.sh "$@"
+exec /usr/lib/jupiter-dock-updater/jupiter-dock-updater.sh "$@"
