@@ -13,7 +13,7 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 # 'auto'         - whether or not to update with --auto
 #
 # - BIOS 19+ are EV2 bios, and can carry forward to the newest.
-# - EV1 units no longer supported, BIOS before F7A0006 requires special steps
+# - EV1-EV2 units no longer supported, BIOS before F7A0006 requires special steps
 BIOS_VERSION_MAP='{
                     "F7A0019": { "default": "F7A0108", "samsung": "F7A0108", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
                     "F7A0020": { "default": "F7A0108", "samsung": "F7A0108", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
@@ -123,6 +123,14 @@ fi
 modestring="Performing"
 [[ -z $checkmode ]] || modestring="Checking for"
 info "$modestring $actionstring"
+
+# Check for EV2s which are no longer supported
+product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
+product_year="${product_serial:4:1}"
+product_week="${product_serial:5:2}"
+if [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
+  finish 0 false 'Skipping update due to unsupported hardware revision'
+fi
 
 # Check for samsung memory
 memory_sns=($(dmidecode | awk '/^[^\t]/ {i=0}; /^Memory Device/ {i=1}; /\tPart Number:/ && i { print $3 }' | uniq))
