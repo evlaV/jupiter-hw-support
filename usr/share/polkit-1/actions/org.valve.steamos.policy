@@ -207,13 +207,24 @@
 
   <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-jupiter-dock-updater">
     <description>Run the jupiter dock updater</description>
-    <icon_name>package-x-generic</icon_name> 
+    <icon_name>package-x-generic</icon_name>
     <defaults>
       <allow_any>yes</allow_any>
       <allow_inactive>yes</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/jupiter-dock-updater</annotate>
+  </action>
+
+  <action id="org.valve.policykit.steamos.pkexec.run-steamos-polkit-helpers-jupiter-check-support">
+    <description>Checks if the current prototype is supported</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/steamos-polkit-helpers/jupiter-check-support</annotate>
   </action>
 
 </policyconfig>
