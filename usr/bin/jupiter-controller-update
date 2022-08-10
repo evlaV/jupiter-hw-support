@@ -13,9 +13,9 @@ CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/EV2_REL_62E42
 CURRENT_D20_FIRMWARE_TIMESTAMP=1659118854
 CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/EV2_D20_REL_62E42506.bin
 
-# RA Date 08-Aug-2022
-CURRENT_RA_FIRMWARE_TIMESTAMP=1660068964
-CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_62F2A464.bin
+# RA Date 10-Aug-2022
+CURRENT_RA_FIRMWARE_TIMESTAMP=1660149260
+CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_62F3DE0C.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
