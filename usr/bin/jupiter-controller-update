@@ -85,6 +85,13 @@ devjq >&2
 ###############################################################################################################################
 needupdate=""
 
+# In OOBE builds, we only want to attempt to touch the firmware if it looks to be in the bootloader.
+# Else, leave everything be, and let the subsequent update do the first firmware-touching.
+if [[ -e /etc/steamos-oobe-image && $bootloader != "true" ]]; then
+  info "OOBE Build: Firmware looks valid, not attempting a flash"
+  exit 0
+fi
+
 # If Primary MCU is in bootloader, then always update
 if [[ $bootloader = "true" ]]; then
     info "Device is in bootloader mode, update required"
