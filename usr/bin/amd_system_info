@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# script from AMD to use when reporting bugs to them
+
+BIOS=`sudo dmesg | grep -w DMI| cut -d':' -f 2|cut -d',' -f 1`
+KERNEL=`uname -r`
+MESA=`pacman -Qs mesa|grep mesa-driver| tail -1|cut -d' ' -f2`
+
+echo
+echo "BIOS: "${BIOS}
+echo "KERNEL:"${KERNEL}
+echo "MESA:  "${MESA}
+echo
+cat /etc/steamos-release
+echo
+cat /etc/os-release
+echo
+cat /etc/lsb-release
+echo
