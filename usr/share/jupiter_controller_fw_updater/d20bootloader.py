@@ -13,6 +13,8 @@ import time
 import json
 import logging
 import subprocess
+from time import sleep
+
 
 from datetime import datetime
 from enum import IntEnum
@@ -90,6 +92,8 @@ CRCFUN   = lambda d: crcmod.mkCrcFun(0x104C11DB7)(d, 0)
 CRCALIGN = 4
 CRCLEN   = struct.calcsize("<I")
 
+MAX_HW_ID = 0x100000000 - 1
+
 def compute_crc(data, size):
     l = len(data)
     data = bytes(data) + bytes(0xFF for _ in range(0, size - len(data)))
@@ -103,6 +107,9 @@ class DogBootloaderTimeout(Exception):
     pass
 
 class DogBootloaderNotSupported(Exception):
+    pass
+
+class DogBootloaderNoDeviceFound(Exception):
     pass
 
 class DogBootloaderMCU(IntEnum):
@@ -247,8 +254,10 @@ class DogBootloader:
         ifaces = hid.enumerate(VALVE_USB_VID, JUPITER_BOOTLOADER_USB_PID)
         if len(ifaces) > 1:
             ifaces = [i for i in ifaces if i['interface_number'] == mcu]
-
-        return ifaces[0]
+        if ifaces:
+            return ifaces[0]
+        else:
+            return None
 
     def __init__(self, mcu=DogBootloaderMCU.PRIMARY, reset=True):
         self.mcu = mcu
@@ -263,6 +272,7 @@ class DogBootloader:
             if reset:
                 LOG.info('Looks like we are running an app. Resetting into bootloader')
                 with hid.Device(path=iface['path']) as self.hiddev:
+                    sleep(0.1)
                     self.app = self.attributes
                     self._reboot_into_isp()
             else:
@@ -294,6 +304,9 @@ class DogBootloader:
 
         else:
             iface = DogBootloader.find_mcu_interface(mcu)
+            if (not iface):
+                raise(DogBootloaderNoDeviceFound);
+
             self.device_type = DeviceType(iface['release_number'])
             self.hiddev = hid.Device(path=iface['path'])
 
@@ -799,6 +812,12 @@ def gethwid(primary, clean):
 @click.option('--primary/--secondary', default=True)
 @click.argument('hardware_id', type=int)
 def sethwid(primary, hardware_id):
+
+    if hardware_id > MAX_HW_ID:
+        print('Hardware ID out of range.')
+        print('ERROR')
+        return
+
     with dog(primary) as bootloader:
         bootloader.hardware_id = hardware_id
     print('SUCCESS')
@@ -897,6 +916,8 @@ if __name__ == '__main__':
         print('NOT SUPPORTED')
     except DogBootloaderTimeout:
         print('TIMEOUT')
+    except DogBootloaderNoDeviceFound:
+        print('NO DEVICE FOUND')
     except DogBootloaderVerifyError:
         print('Programmed data mismatch')
         print('ERROR')
