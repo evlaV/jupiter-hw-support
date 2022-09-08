@@ -71,7 +71,8 @@ do_mount()
 
     # We need symlinks for Steam for now, so only automount ext4 as that'll Steam will format right now
     if [[ ${ID_FS_TYPE} != "ext4" ]]; then
-      exit 1
+        echo "Error mounting ${DEVICE}: wrong fstype: ${ID_FS_TYPE} - ${dev_json}"
+        exit 2
     fi
 
     if ! /bin/mount -o "${OPTS}" -- "${DEVICE}" "${MOUNT_POINT}"; then
