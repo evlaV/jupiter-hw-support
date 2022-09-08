@@ -81,24 +81,7 @@ parted --script "$SDCARD_DEVICE" mklabel gpt mkpart primary 0% 100%
 sync
 mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" -F "$SDCARD_PARTITION"
 sync
-
-# Wait up until ten seconds for the new filesystem to become visible
-# In some cases this can fail the first couple of times
-for i in {1..10}; do
-    # This doesn't help, but it also doesn't hurt.
-    # The docs hint that this might be what we need so lets keep it around just in case.
-    partprobe "$SDCARD_DEVICE" || true
-
-    dev_json=$(lsblk -o FSTYPE --json -- "$SDCARD_PARTITION" | jq '.blockdevices[0]')
-    ID_FS_TYPE=$(jq -r '.fstype | select(type == "string")' <<< "$dev_json")
-
-    echo "checking fstype: attempt: ${i} fstype: ${ID_FS_TYPE}"
-    if [[ ${ID_FS_TYPE} == "ext4" ]]; then
-        break;
-    fi
-
-    sleep 0.5
-done
+udevadm settle
 
 # trigger the mount service
 rm "$MOUNT_LOCK"
