@@ -5,15 +5,15 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-# D21 Date 9-Sep-2022
+# D21 Date 12-Sep-2022
 CURRENT_D21_FIRMWARE_TIMESTAMP=1663000052
 CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_631F5DF4.bin
 
-# D20 Date 9-Sep-2022
+# D20 Date 12-Sep-2022
 CURRENT_D20_FIRMWARE_TIMESTAMP=1663000052
 CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_631F5DF4.bin
 
-# RA Date 9-Sep-2022
+# RA Date 12-Sep-2022
 CURRENT_RA_FIRMWARE_TIMESTAMP=1663000052
 CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_631F5DF4.bin
 
