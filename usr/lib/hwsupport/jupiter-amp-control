@@ -16,12 +16,24 @@ STATUS_FILE="$FIRMWARE_ROOT/amp-control-status.txt"
 SPK_PROT_COPY_FROM_PATH=
 COMMAND=
 
+function do_help()
+{
+    echo "Usage jupiter-amp-control <command>"
+    echo
+    echo "commands:"
+    echo "   --legacy      Setup legacy test firmware"
+    echo "   --restore     Restore original firmware"
+    echo "   --status      Prints original/legacy"
+
+    exit 0
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --legacy) COMMAND="update"; SPK_PROT_COPY_FROM_PATH="$SPK_PROT_MOD_PATH"; shift ;;
         --restore) COMMAND="update"; SPK_PROT_COPY_FROM_PATH="$SPK_PROT_ORIG_PATH"; shift ;;
         --status) COMMAND="status"; shift ;;
-        *) echo "Unknown option $1"; exit 22;;
+        *) echo "Unknown option $1"; do_help; exit 22;;
     esac
 done
 
@@ -82,11 +94,15 @@ function do_update()
     echo "Updated firmware md5sums:"
     md5sum "$SPK_PROT_PATH" "$SPK_PROT_ORIG_PATH" "$SPK_PROT_MOD_PATH"
 
+    # TODO(andresr): maybe we can reload the driver on the fly?
+    echo
+    echo "Reboot system for changes to take effect"
+
     exit 0
 }
 
 case "$COMMAND" in
     update) do_update; shift ;;
     status) do_status; shift ;;
-    *) echo "No command specified"; exit 22;;
+    *) echo "No command specified"; do_help; exit 22;;
 esac
