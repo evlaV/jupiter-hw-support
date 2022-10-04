@@ -5,17 +5,17 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-# D21 Date 14-Sep-2022
-CURRENT_D21_FIRMWARE_TIMESTAMP=1663179565
-CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_63221B25.bin
+# D21 Date 4-Oct-2022
+CURRENT_D21_FIRMWARE_TIMESTAMP=1664912704
+CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_633C8D40.bin
 
-# D20 Date 14-Sep-2022
-CURRENT_D20_FIRMWARE_TIMESTAMP=1663179565
-CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_63221B25.bin
+# D20 Date 4-Oct-2022
+CURRENT_D20_FIRMWARE_TIMESTAMP=1664912705
+CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_633C8D41.bin
 
-# RA Date 14-Sep-2022
-CURRENT_RA_FIRMWARE_TIMESTAMP=1663179557
-CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_63221B25.bin
+# RA Date 4-Oct-2022
+CURRENT_RA_FIRMWARE_TIMESTAMP=1664912695
+CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_633C8D37.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
