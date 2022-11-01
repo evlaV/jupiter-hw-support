@@ -81,11 +81,12 @@ finish() {
 checkmode=
 beta=
 automode=
+forcereinstall=
 # If --no-beta was passed, we don't want to auto-detect beta from /run/jupiter-bios-use-beta
 explicit_no_beta=
 
 usage() {
-  echo >&2 "!! Usage: $0 [--beta] [check] [--auto]";
+  echo >&2 "!! Usage: $0 [--beta] [check] [--auto] [--force]";
   exit 1
 }
 
@@ -101,6 +102,8 @@ while [[ ${#@} -gt 0 ]]; do
     explicit_no_beta=
   elif [[ $arg = "--auto" ]]; then
     automode=1
+  elif [[ $arg = "--force" ]]; then
+    forcereinstall=1
   else
     usage
   fi
@@ -177,7 +180,12 @@ echo >&2 "Desired version: ${desiredversion:-<none>}"
 
 # No updates configured for the current version
 if [[ -z $desiredversion ]]; then
-  finish 0 no 'No updates configured for this bios'
+  # did the user request a reinstall
+  if [[ $forcereinstall = 1 && -f $BIOS_DIR/$currentversion$BIOS_SUFFIX ]]; then
+    desiredversion=$currentversion
+  else
+    finish 0 no 'No updates configured for this bios'
+  fi
 fi
 
 # Skip if --auto was specified but "auto": "false" for the current version
