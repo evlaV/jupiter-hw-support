@@ -51,8 +51,13 @@ elif [[ $count -lt 1 ]]; then
   die "No compatible devices found"
 fi
 
-build_timestamp=$(devjq '.[0].build_timestamp | select(. != null)')
-secondary_build_timestamp=$(devjq '.[0].secondary_build_timestamp | select(. != null)')
+# Parse out the primary and secondary timestamps and convert to uppercase as we'll be doing string comparisons below
+build_timestamp=$(printf "%x" $(devjq '.[0].build_timestamp | select(. != null)'))
+build_timestamp=${build_timestamp^^}
+
+secondary_build_timestamp=$(printf "%x" $(devjq '.[0].secondary_build_timestamp | select(. != null)'))
+secondary_build_timestamp=${secondary_build_timestamp^^}
+
 info "PTS: ${build_timestamp}, STS: ${secondary_build_timestamp}"
 
 # Determine the bootloader type (1,2,3) This is indicated by major release # of USB device (vs. 1 for older, 2 hybrid, 3 for RA). 
@@ -96,37 +101,37 @@ if [[ $bootloader = "true" ]]; then
     needupdate=1
 
 # If either timestamp is 0 in non-Type 3 units (Only check dual MCU Types (1 and 2))    
-elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]] && [[ $bootloader_type -ne 3 ]]; then
+elif [[ $build_timestamp == "0" ]] || [[ $secondary_build_timestamp == "0" ]] && [[ $bootloader_type -ne 3 ]]; then
     info "Device has missing build timestamp, update required"
     needupdate=1
 
 # Type 1: Check D21 FW timestamp
 elif [[ $bootloader_type -eq 1 ]]; then
 
-    if [[ ${build_timestamp} -eq $(( 0x${CURRENT_D21_FW_TS} )) ]]; then
+    if [[ ${build_timestamp} == ${CURRENT_D21_FW_TS} ]]; then
       info "NO UPDATE: Type 1 device is running latest build $CURRENT_D21_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 1 device is running build '$(printf "%x" ${build_timestamp})', updating to build $CURRENT_D21_FW_TS"
+      info "UPDATE: Type 1 device is running build '$build_timestamp', updating to build $CURRENT_D21_FW_TS"
     fi
 
 # Type 2: Check both primary and secondary timestamps. We're not going to determine Type 2 a or b sub-types
 elif [[ $bootloader_type -eq 2 ]]; then
 
-    if [[ ${build_timestamp} -eq $(( 0x$CURRENT_D21_FW_TS )) ]] && [[ ${secondary_build_timestamp} -eq $(( 0x$CURRENT_D21_FW_TS )) || ${secondary_build_timestamp} -eq  $((  0x$CURRENT_D20_FW_TS )) ]]; then
+    if [[ $build_timestamp == $CURRENT_D21_FW_TS ]] && [[ $secondary_build_timestamp == $CURRENT_D21_FW_TS || $secondary_build_timestamp == $CURRENT_D20_FW_TS ]]; then
       info "NO UPDATE: Type 1/2 Device is running latest build $CURRENT_D21_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 1/2 Device is running builds $(printf "%x" $build_timestamp) | $(printf "%x" $secondary_build_timestamp), updating to build ($CURRENT_D21_FW_TS | $CURRENT_D21_FW_TS or $CURRENT_D20_FW_TS)"
+      info "UPDATE: Type 1/2 Device is running builds $build_timestamp | $secondary_build_timestamp, updating to build ($CURRENT_D21_FW_TS | $CURRENT_D21_FW_TS or $CURRENT_D20_FW_TS)"
     fi
 
 # Type 3: Check the single-MCU's timesamp
-elif [[ ${bootloader_type} -eq 3 ]]; then
-    if [[ ${build_timestamp} -eq $((  0x$CURRENT_RA4_FW_TS )) ]]; then
+elif [[ $bootloader_type -eq 3 ]]; then
+    if [[ $build_timestamp == $CURRENT_RA4_FW_TS ]]; then
       info "NO UPDATE: Type 3 Device is running latest build $CURRENT_RA4_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 3 Device is running build '$(printf "%x" $build_timestamp)', updating to build $CURRENT_RA4_FW_TS"
+      info "UPDATE: Type 3 Device is running build '$build_timestamp', updating to build $CURRENT_RA4_FW_TS"
     fi
 
 else
@@ -161,7 +166,7 @@ if [[ $bootloader_type -eq 2 ]]; then
   fi
 fi
 
-info "Found candidate device, build timestamp $(printf "%x" ${build_timestamp:-unknown}), BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
+info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
 
 # Done if check mode
 if [[ -n $checkmode ]]; then
