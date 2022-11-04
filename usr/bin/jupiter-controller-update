@@ -5,15 +5,17 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+# All timestamps used below are 8-char HEX strings w/o leading "0x"  
+
 # Build Date 2-Nov-2022
-CURRENT_D21_FIRMWARE_TIMESTAMP=1667423630
-CURRENT_FIRMWARE_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_6362DD8E.bin
+CURRENT_D21_FW_TS=6362FF36
+CURRENT_FW_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_${CURRENT_D21_FW_TS}.bin
 
-CURRENT_D20_FIRMWARE_TIMESTAMP=1667423622
-CURRENT_FIRMWARE_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_6362DD86.bin
+CURRENT_D20_FW_TS=6362FF3C
+CURRENT_FW_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_${CURRENT_D20_FW_TS}.bin
 
-CURRENT_RA_FIRMWARE_TIMESTAMP=1667423633
-CURRENT_FIRMWARE_FILE_RA=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_6362DD91.bin
+CURRENT_RA4_FW_TS=6362FF3B
+CURRENT_FW_FILE_RA4=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_${CURRENT_RA4_FW_TS}.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2=/usr/share/jupiter_controller_fw_updater/d20bootloader.py
@@ -51,8 +53,13 @@ elif [[ $count -lt 1 ]]; then
   die "No compatible devices found"
 fi
 
-build_timestamp=$(devjq '.[0].build_timestamp | select(. != null)')
-secondary_build_timestamp=$(devjq '.[0].secondary_build_timestamp | select(. != null)')
+# Parse out the primary and secondary timestamps and convert to 8-character uppercase as we'll be doing 
+# string comparisons below.
+null_build_timestamp="00000000"
+
+build_timestamp=$(printf "%08X" $(devjq '.[0].build_timestamp | select(. != null)'))
+secondary_build_timestamp=$(printf "%08X" $(devjq '.[0].secondary_build_timestamp | select(. != null)'))
+
 info "PTS: ${build_timestamp}, STS: ${secondary_build_timestamp}"
 
 # Determine the bootloader type (1,2,3) This is indicated by major release # of USB device (vs. 1 for older, 2 hybrid, 3 for RA). 
@@ -96,37 +103,37 @@ if [[ $bootloader = "true" ]]; then
     needupdate=1
 
 # If either timestamp is 0 in non-Type 3 units (Only check dual MCU Types (1 and 2))    
-elif [[ $build_timestamp -eq 0 ]] || [[ $secondary_build_timestamp -eq 0 ]] && [[ $bootloader_type -ne 3 ]]; then
+elif [[ $build_timestamp == $null_build_timestamp ]] || [[ $secondary_build_timestamp == $null_build_timestamp ]] && [[ $bootloader_type -ne 3 ]]; then
     info "Device has missing build timestamp, update required"
     needupdate=1
 
 # Type 1: Check D21 FW timestamp
 elif [[ $bootloader_type -eq 1 ]]; then
 
-    if [[ ${build_timestamp} -eq $CURRENT_D21_FIRMWARE_TIMESTAMP ]]; then
-      info "NO UPDATE: Type 1 device is running latest build $CURRENT_D21_FIRMWARE_TIMESTAMP"
+    if [[ ${build_timestamp} == ${CURRENT_D21_FW_TS} ]]; then
+      info "NO UPDATE: Type 1 device is running latest build $CURRENT_D21_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 1 device is running build '$build_timestamp', updating to build $CURRENT_D21_FIRMWARE_TIMESTAMP"
+      info "UPDATE: Type 1 device is running build $build_timestamp, updating to build $CURRENT_D21_FW_TS"
     fi
 
 # Type 2: Check both primary and secondary timestamps. We're not going to determine Type 2 a or b sub-types
 elif [[ $bootloader_type -eq 2 ]]; then
 
-    if [[ ${build_timestamp} -eq $CURRENT_D21_FIRMWARE_TIMESTAMP ]] && [[ ${secondary_build_timestamp} -eq $CURRENT_D21_FIRMWARE_TIMESTAMP || ${secondary_build_timestamp} -eq  $CURRENT_D20_FIRMWARE_TIMESTAMP  ]]; then
-      info "NO UPDATE: Type 1/2 Device is running latest build $CURRENT_D21_FIRMWARE_TIMESTAMP"
+    if [[ $build_timestamp == $CURRENT_D21_FW_TS ]] && [[ $secondary_build_timestamp == $CURRENT_D21_FW_TS || $secondary_build_timestamp == $CURRENT_D20_FW_TS ]]; then
+      info "NO UPDATE: Type 1/2 Device is running latest build $CURRENT_D21_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 1/2 Device is running builds ($build_timestamp | $secondary_build_timestamp), updating to build ($CURRENT_D21_FIRMWARE_TIMESTAMP | $CURRENT_D21_FIRMWARE_TIMESTAMP or $CURRENT_D20_FIRMWARE_TIMESTAMP)"
+      info "UPDATE: Type 1/2 Device is running builds $build_timestamp | $secondary_build_timestamp, updating to build ($CURRENT_D21_FW_TS | $CURRENT_D21_FW_TS or $CURRENT_D20_FW_TS)"
     fi
 
 # Type 3: Check the single-MCU's timesamp
-elif [[ ${bootloader_type} -eq 3 ]]; then
-    if [[ ${build_timestamp} -eq $CURRENT_RA_FIRMWARE_TIMESTAMP ]]; then
-      info "NO UPDATE: Type 3 Device is running latest build $CURRENT_RA_FIRMWARE_TIMESTAMP"
+elif [[ $bootloader_type -eq 3 ]]; then
+    if [[ $build_timestamp == $CURRENT_RA4_FW_TS ]]; then
+      info "NO UPDATE: Type 3 Device is running latest build $CURRENT_RA4_FW_TS"
     else
       needupdate=1
-      info "UPDATE: Type 3 Device is running build '$build_timestamp', updating to build $CURRENT_RA_FIRMWARE_TIMESTAMP"
+      info "UPDATE: Type 3 Device is running build $build_timestamp, updating to build $CURRENT_RA4_FW_TS"
     fi
 
 else
@@ -201,29 +208,29 @@ run_firmware_tool() {
 # The background+wait is so our exit handler above can kill it if the script itself is asked to stop.  Because bash.
 if   [[ $bootloader_type -eq 1 ]]; then
   info "Updating Type 1 System"
-  run_firmware_tool program "$CURRENT_FIRMWARE_FILE_D21"
-  info "Firmware updated to $CURRENT_D21_FIRMWARE_TIMESTAMP"
+  run_firmware_tool program "$CURRENT_FW_FILE_D21"
+  info "Firmware updated to $CURRENT_D21_FW_TS"
 
 elif   [[ $bootloader_type -eq 3 ]]; then
   info "Updating Type 3 System"
-  run_firmware_tool program "$CURRENT_FIRMWARE_FILE_RA"
-  info "Firmware updated to $CURRENT_RA_FIRMWARE_TIMESTAMP"
+  run_firmware_tool program "$CURRENT_FW_FILE_RA4"
+  info "Firmware updated to $CURRENT_RA4_FW_TS"
 
 elif [[ $bootloader_type -eq 2 ]]; then
 
   if [[ $hybrid = "true" ]]; then
     info "Updating Hybrid SECONDARY of Type 2 System"
-    run_firmware_tool program --secondary "$CURRENT_FIRMWARE_FILE_D20"
-  else 
+    run_firmware_tool program --secondary "$CURRENT_FW_FILE_D20"
+  else
     info "Updating Homogeneous SECONDARY of Type 2 System"
-    run_firmware_tool program --secondary "$CURRENT_FIRMWARE_FILE_D21"
+    run_firmware_tool program --secondary "$CURRENT_FW_FILE_D21"
   fi
 
   info "Updating PRIMARY of Type 2 System"
-  run_firmware_tool program --primary "$CURRENT_FIRMWARE_FILE_D21"
- info "Firmware updated to $CURRENT_D21_FIRMWARE_TIMESTAMP"
+  run_firmware_tool program --primary "$CURRENT_FW_FILE_D21"
+ info "Firmware updated to $CURRENT_D21_FW_TS"
 
-else  
+else
   info "Unknown System Type " + $bootloader_type
 fi
 
