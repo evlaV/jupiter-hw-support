@@ -19,10 +19,16 @@ ACTION=$1
 DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
 
-MOUNT_LOCK="/var/run/sdcard-mount.lock"
-if [[ -e $MOUNT_LOCK && $(pgrep -F "$MOUNT_LOCK") ]]; then
+# Shared between this and the auto-mount script to ensure we're not double-triggering nor automounting while formatting
+# or vice-versa.
+MOUNT_LOCK="/var/run/jupiter-automount-${DEVBASE//\/_}.lock"
+
+# Obtain lock
+exec 9<>"$MOUNT_LOCK"
+if ! flock -n 9; then
     echo "$MOUNT_LOCK is active: ignoring action $ACTION"
-    # Do not return a success exit code: it could end up putting the service in 'started' state without doing the mount work (further start commands will be ignored after that)
+    # Do not return a success exit code: it could end up putting the service in 'started' state without doing the mount
+    # work (further start commands will be ignored after that)
     exit 1
 fi
 
