@@ -15,6 +15,11 @@ function is_known_bad_device()
     local sdcard_oemid=$(cat "$sdcard_dir"/oemid)
     local sdcard_safe_trim_quirk_version=$(cat "$sdcard_dir"/safe_trim_quirk)
 
+    if [ -z "$sdcard_safe_trim_quirk_version" ]; then
+        echo "Warning: kernel does not advertise safe_trim_quirk version, assuming 0"
+        sdcard_safe_trim_quirk_version=0
+    fi
+
     echo "Found sdcard: manfid=$sdcard_manfid oemid=$sdcard_oemid safe_trim_quirk_version=$sdcard_safe_trim_quirk_version"
 
     # Check for problematic cards
@@ -27,6 +32,7 @@ function is_known_bad_device()
         if [[ "$sdcard_safe_trim_quirk_version" -lt "1" ]]; then
             echo "Warning: sdcard is not safe to trim"
             false
+            return
         fi
 
         echo "Warning: possible problematic card, but kernel advertises workaround support. Proceeding."
