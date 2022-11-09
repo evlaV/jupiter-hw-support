@@ -31,17 +31,17 @@ function is_known_bad_device()
         # to convert discard commands to erase commands
         if [[ "$sdcard_safe_trim_quirk_version" -lt "1" ]]; then
             echo "Warning: sdcard is not safe to trim"
-            false
+            true
             return
         fi
 
         echo "Warning: possible problematic card, but kernel advertises workaround support. Proceeding."
-        true
+        false
         return;
     fi
 
     echo "sdcard is safe to trim"
-    true
+    false
     return;
 }
 
