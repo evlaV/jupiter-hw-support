@@ -7,14 +7,14 @@ die() { info "!! $*"; exit 1; }
 
 # All timestamps used below are 8-char HEX strings w/o leading "0x"  
 
-# Build Date 2-Nov-2022
-CURRENT_D21_FW_TS=6362FF36
+# Build Date 17-Nov-2022
+CURRENT_D21_FW_TS=63767520
 CURRENT_FW_FILE_D21=/usr/share/jupiter_controller_fw_updater/D21_APP_REL_${CURRENT_D21_FW_TS}.bin
 
-CURRENT_D20_FW_TS=6362FF3C
+CURRENT_D20_FW_TS=63767513
 CURRENT_FW_FILE_D20=/usr/share/jupiter_controller_fw_updater/D20_APP_REL_${CURRENT_D20_FW_TS}.bin
 
-CURRENT_RA4_FW_TS=6362FF3B
+CURRENT_RA4_FW_TS=6376751F
 CURRENT_FW_FILE_RA4=/usr/share/jupiter_controller_fw_updater/RA_APP_REL_${CURRENT_RA4_FW_TS}.bin
 
 FIRMWARE_TOOL_TYPE_1=/usr/share/jupiter_controller_fw_updater/d21bootloader16.py
