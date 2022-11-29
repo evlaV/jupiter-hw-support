@@ -208,6 +208,12 @@ if [[ -n $checkmode ]]; then
   finish 7 yes "Updates available, not applying in check mode"
 fi
 
+# In --auto mode, skip operating on OOBE images, favoring the provided BIOS and letting the first update occur on the
+# day1 image.
+if [[ -n $automode && -e /etc/steamos-oobe-image ]]; then
+  finish 0 no "Update available, not applying in OOBE image in --auto mode.  Invoke directly to force update."
+fi
+
 # Abort if --auto and battery < 20%
 # (for non-auto updates we leave this up to the UI)
 if [[ -n $automode && $(( "$(cat /sys/class/power_supply/BAT1/capacity)" )) -lt 20 ]]; then
