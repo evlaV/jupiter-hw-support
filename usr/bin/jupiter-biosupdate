@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+## Environment overrides
+# If set, look for BIOS files here rather than the default.  Used for vendoring newer updates in repair images.
+JUPITER_BIOS_DIR=
+
 # If found, and --no-beta wasn't explicitly passed, use beta mode.  Set by e.g. foxnet.
 BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 
@@ -43,8 +47,8 @@ BIOS_VERSION_MAP='{
 
 # Bios to attempt to install
 BIOS_FLASHER="/usr/share/jupiter_bios_updater/h2offt"
-# Where the bioses (bi-ii?) live
-BIOS_DIR="/usr/share/jupiter_bios"
+# Where the bioses (bi-ii?) live.  Can be overridden by JUPITER_BIOS_DIR in environment
+BIOS_DIR="${JUPITER_BIOS_DIR:-/usr/share/jupiter_bios}"
 # What to append to the bios name to get the file name
 BIOS_SUFFIX="_sign.fd"
 # Inhibit file. Do nothing if this exists.
