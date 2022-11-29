@@ -5,7 +5,13 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
-# All timestamps used below are 8-char HEX strings w/o leading "0x"  
+##
+## These can be set in the environment to tweak behavior
+##
+# If set to 1 disable the "don't run if we're an oobe build" logic
+JUPITER_CONTROLLER_UPDATE_IN_OOBE=${JUPITER_CONTROLLER_UPDATE_IN_OOBE:-0}
+
+# All timestamps used below are 8-char HEX strings w/o leading "0x"
 
 # Build Date 21-Nov-2022
 CURRENT_D21_FW_TS=637BE653
@@ -92,7 +98,7 @@ needupdate=""
 
 # In OOBE builds, we only want to attempt to touch the firmware if it looks to be in the bootloader.
 # Else, leave everything be, and let the subsequent update do the first firmware-touching.
-if [[ -e /etc/steamos-oobe-image && $bootloader != "true" ]]; then
+if [[ $JUPITER_CONTROLLER_UPDATE_IN_OOBE -ne 1 && -e /etc/steamos-oobe-image && $bootloader != "true" ]]; then
   info "OOBE Build: Firmware looks valid, not attempting a flash"
   exit 0
 fi
