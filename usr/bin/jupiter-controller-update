@@ -11,7 +11,7 @@ die() { info "!! $*"; exit 1; }
 # If set to 1 disable the "don't run if we're an oobe build" logic
 JUPITER_CONTROLLER_UPDATE_IN_OOBE=${JUPITER_CONTROLLER_UPDATE_IN_OOBE:-0}
 # Override the default firmware location
-JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR=
+JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR=${JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR-}
 
 # All timestamps used below are 8-char HEX strings w/o leading "0x"
 
