@@ -18,6 +18,8 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 #
 # - BIOS 19+ are EV2 bios, and can carry forward to the newest.
 # - EV1-EV2 units no longer supported, BIOS before F7A0006 requires special steps
+
+# TODO F7A0042 should go to 113 or newer when that is included (those units cannot accept 100-113 mainline)
 BIOS_VERSION_MAP='{
                     "F7A0019": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
                     "F7A0020": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
