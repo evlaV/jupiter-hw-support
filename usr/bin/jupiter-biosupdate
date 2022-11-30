@@ -3,7 +3,7 @@ set -e
 
 ## Environment overrides
 # If set, look for BIOS files here rather than the default.  Used for vendoring newer updates in repair images.
-JUPITER_BIOS_DIR=
+JUPITER_BIOS_DIR=${JUPITER_BIOS_DIR-}
 
 # If found, and --no-beta wasn't explicitly passed, use beta mode.  Set by e.g. foxnet.
 BIOS_BETA_FILE=/run/jupiter-bios-use-beta
