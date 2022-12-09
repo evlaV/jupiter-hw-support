@@ -21,30 +21,33 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 
 # TODO F7A0042 should go to 113 or newer when that is included (those units cannot accept 100-113 mainline)
 BIOS_VERSION_MAP='{
-                    "F7A0019": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0020": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0021": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0022": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0023": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0024": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0025": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0026": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0027": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0028": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0029": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0030": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0031": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0032": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0100": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0101": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
-                    "F7A0102": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0103": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0104": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0105": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0106": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0107": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0108": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
-                    "F7A0109": { "default": "F7A0110", "samsung": "F7A0110", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    "F7A0019": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0020": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0021": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0022": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0023": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0024": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0025": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0026": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0027": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0028": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0029": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0030": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0031": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0032": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0100": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0101": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "false" },
+                    "F7A0102": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0103": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0104": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0105": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0106": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0107": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0108": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" },
+                    "F7A0109": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    "F7A0110": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    "F7A0111": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    "F7A0112": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                   }'
 
 # Bios to attempt to install
