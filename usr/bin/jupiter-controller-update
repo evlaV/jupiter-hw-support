@@ -5,6 +5,16 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+# Is this an EV2 or older unit
+is_ev2() {
+  local product_serial
+  product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
+  local product_year="${product_serial:4:1}"
+  local product_week="${product_serial:5:2}"
+
+  [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]
+}
+
 ##
 ## These can be set in the environment to tweak behavior
 ##
@@ -26,6 +36,13 @@ CURRENT_FW_FILE_D20="$FIRMWARE_DIR"/D20_APP_REL_${CURRENT_D20_FW_TS}.bin
 
 CURRENT_RA4_FW_TS=637BE655
 CURRENT_FW_FILE_RA4="$FIRMWARE_DIR"/RA_APP_REL_${CURRENT_RA4_FW_TS}.bin
+
+if is_ev2; then
+  # Last working firmware for EV2 for older units we no longer support
+  # D21 Date 8-Jul-2022
+  CURRENT_D21_FW_TS=62C853C3
+  CURRENT_FW_FILE_D21="$FIRMWARE_DIR"/EV2_REL_62C853C3.bin
+fi
 
 FIRMWARE_TOOL_TYPE_1="$FIRMWARE_DIR"/d21bootloader16.py
 FIRMWARE_TOOL_TYPE_2="$FIRMWARE_DIR"/d20bootloader.py
