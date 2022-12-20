@@ -53,7 +53,7 @@ fi
 
 STORAGE_PARTBASE="${STORAGE_PARTITION#/dev/}"
 
-systemctl stop sdcard-mount@"$STORAGE_PARTBASE".service
+systemctl stop steamos-automount@"$STORAGE_PARTBASE".service
 
 # lock file prevents the mount service from re-mounting as it gets triggered by udev rules.
 #
@@ -124,9 +124,9 @@ udevadm settle
 
 # trigger the mount service
 flock -u "$MOUNT_LOCK_FD"
-if ! systemctl start sdcard-mount@"$STORAGE_PARTBASE".service; then
+if ! systemctl start steamos-automount@"$STORAGE_PARTBASE".service; then
     echo "Failed to start mount service"
-    journalctl --no-pager --boot=0 -u sdcard-mount@"$STORAGE_PARTBASE".service
+    journalctl --no-pager --boot=0 -u steamos-automount@"$STORAGE_PARTBASE".service
     exit 5
 fi
 
