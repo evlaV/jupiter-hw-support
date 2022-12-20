@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Originally from https://serverfault.com/a/767079
 
 # This script is called from our systemd unit file to mount or unmount
@@ -32,9 +34,6 @@ if ! flock -n 9; then
     exit 1
 fi
 
-# See if this drive is already mounted, and if so where
-MOUNT_POINT=$(mount | grep -F "${DEVICE}" | awk '{ print $3 }')
-
 # From https://gist.github.com/HazCod/da9ec610c3d50ebff7dd5e7cac76de05
 urlencode()
 {
@@ -43,29 +42,10 @@ urlencode()
 
 do_mount()
 {
-    if [[ -n ${MOUNT_POINT} ]]; then
-        echo "Warning: ${DEVICE} is already mounted at ${MOUNT_POINT}"
-        exit 1
-    fi
-
     # Get info for this drive: $ID_FS_LABEL, and $ID_FS_TYPE
     dev_json=$(lsblk -o PATH,LABEL,FSTYPE --json -- "$DEVICE" | jq '.blockdevices[0]')
     ID_FS_LABEL=$(jq -r '.label | select(type == "string")' <<< "$dev_json")
     ID_FS_TYPE=$(jq -r '.fstype | select(type == "string")' <<< "$dev_json")
-
-    # Figure out a mount point to use
-    LABEL=${ID_FS_LABEL}
-    if [[ -z "${LABEL}" ]]; then
-        LABEL=${DEVBASE}
-    elif /bin/grep -qF " /run/media/${LABEL} " /etc/mtab; then
-        # Already in use, make a unique one
-        LABEL+="-${DEVBASE}"
-    fi
-    MOUNT_POINT="/run/media/${LABEL}"
-
-    echo "Mount point: ${MOUNT_POINT}"
-
-    /bin/mkdir -p -- "${MOUNT_POINT}"
 
     # Global mount options
     OPTS="rw,noatime"
@@ -81,17 +61,47 @@ do_mount()
         exit 2
     fi
 
-    if ! /bin/mount -o "${OPTS}" -- "${DEVICE}" "${MOUNT_POINT}"; then
-        echo "Error mounting ${DEVICE} (status = $?)"
-        /bin/rmdir -- "${MOUNT_POINT}"
+    # Prior to talking to udisks, we need all udev hooks (we were started by one) to finish, so we know it has knowledge
+    # of the drive.  Our own rule starts us as a service with --no-block, so we can wait for rules to settle here
+    # safely.
+    if ! udevadm settle; then
+      echo "Failed to wait for \`udevadm settle\`"
+      exit 1
+    fi
+
+    # Ask udisks to auto-mount.  Since this API doesn't let us pass a username to automount as, we need to drop to the
+    # deck user.  Don't do this as a `--user` unit though as their session may not be running.
+    #
+    # This requires the paired polkit file to allow the deck user the filesystem-mount-other-seat permission.
+    #   Working around that would require racily detecting the active VT and binding this invocation to a PAM session on
+    #   that seat/VT.  This is silly.
+    ret=0
+    reply=$(systemd-run --uid=1000 --pipe                                                          \
+              busctl call --allow-interactive-authorization=false --expect-reply=true --json=short \
+                org.freedesktop.UDisks2                                                            \
+                /org/freedesktop/UDisks2/block_devices/"${DEVBASE}"                                \
+                org.freedesktop.UDisks2.Filesystem                                                 \
+                Mount 'a{sv}' 2                                                                    \
+                  auth.no_user_interaction b true                                                  \
+                  options                  s "$OPTS") || ret=$?
+
+    if [[ $ret -ne 0 ]]; then
+        echo "Error mounting ${DEVICE} (status = $ret)"
         exit 1
     fi
 
-    chown 1000:1000 -- "${MOUNT_POINT}"
+    # Expected reply is of the format
+    #  {"type":"s","data":["/run/media/deck/home"]}
+    mount_point=$(jq -r '.data[0] | select(type == "string")' <<< "$reply" || true)
+    if [[ -z $mount_point ]]; then
+      echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
+      echo "---"$'\n'"$reply"$'\n'"---"
+      exit 1
+    fi
 
-    echo "**** Mounted ${DEVICE} at ${MOUNT_POINT} ****"
+    echo "**** Mounted ${DEVICE} at ${mount_point} ****"
 
-    url=$(urlencode "${MOUNT_POINT}")
+    url=$(urlencode "${mount_point}")
 
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
@@ -103,34 +113,14 @@ do_mount()
 
 do_unmount()
 {
-    url=$(urlencode "${MOUNT_POINT}")
-
     # If Steam is running, notify it
     if pgrep -x "steam" > /dev/null; then
+        local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
+        url=$(urlencode "${mount_point}")
         # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
         # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
         systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://removelibraryfolder/${url@Q}"
     fi
-
-    if [[ -z ${MOUNT_POINT} ]]; then
-        echo "Warning: ${DEVICE} is not mounted"
-    else
-        /bin/umount -l -- "${DEVICE}"
-        echo "**** Unmounted ${DEVICE}"
-    fi
-
-    # Delete all empty dirs in /media that aren't being used as mount
-    # points. This is kind of overkill, but if the drive was unmounted
-    # prior to removal we no longer know its mount point, and we don't
-    # want to leave it orphaned...
-    for f in /run/media/* ; do
-        if [[ -n $(/usr/bin/find "$f" -maxdepth 0 -type d -empty) ]]; then
-            if ! /bin/grep -qF " $f " /etc/mtab; then
-                echo "**** Removing mount point $f"
-                /bin/rmdir "$f"
-            fi
-        fi
-    done
 }
 
 case "${ACTION}" in
