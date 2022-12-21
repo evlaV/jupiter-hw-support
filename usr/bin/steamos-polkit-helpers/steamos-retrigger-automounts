@@ -10,4 +10,4 @@ then
 fi
 
 set -x
-systemctl reload --state=active steamos-automount@\*
+systemctl reload --no-block --state=active steamos-automount@\*

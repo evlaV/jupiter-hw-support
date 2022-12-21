@@ -40,21 +40,24 @@ wait_steam()
     local i=0
     local wait=$1
     echo "Waiting up to $wait seconds for steam to load"
-    while ! pgrep -x steamwebhelper && (( i++ < wait )); do
+    while ! pgrep -x steamwebhelper &>/dev/null && (( i++ < wait )); do
         sleep 1
     done
+    # This is a truly gnarly way to ensure steam is ready for commands.
+    sleep 1
 }
 
 send_steam_url()
 {
-  local url="$1"
+  local command="$1"
+  local arg="$2"
   if pgrep -x "steam" > /dev/null; then
       local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
       url=$(urlencode "${mount_point}")
       # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
       # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam ${url@Q}"
-      echo "Sent URL to steam: $url"
+      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${arg@Q}"
+      echo "Sent URL to steam: steam://${command}/${arg}"
   else
       echo "Could not send steam URL $url -- steam not running"
   fi
@@ -130,26 +133,27 @@ do_mount()
     url=$(urlencode "${mount_point}")
 
     # If Steam is running, notify it
-    send_steam_url "steam://addlibraryfolder/${url}"
+    send_steam_url "addlibraryfolder" "${url}"
 }
 
 do_unmount()
 {
     # If Steam is running, notify it
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-    [[ -n $url ]] || return 0
+    [[ -n $mount_point ]] || return 0
     url=$(urlencode "${mount_point}")
-    send_steam_url "steam://removelibraryfolder/${url}"
+    send_steam_url "removelibraryfolder" "${url}"
 }
 
 do_retrigger()
 {
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
     url=$(urlencode "${mount_point}")
-    [[ -n $url ]] || return 0
+    [[ -n $mount_point ]] || return 0
 
+    # In retrigger mode, we want to wait a bit for steam as the common pattern is starting in parallel with a retrigger
     wait_steam 10
-    send_steam_url "steam://addlibraryfolder/$url"
+    send_steam_url "addlibraryfolder" "${url}"
 }
 
 case "${ACTION}" in
