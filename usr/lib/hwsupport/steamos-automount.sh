@@ -43,8 +43,6 @@ wait_steam()
     while ! pgrep -x steamwebhelper &>/dev/null && (( i++ < wait )); do
         sleep 1
     done
-    # This is a truly gnarly way to ensure steam is ready for commands.
-    sleep 1
 }
 
 send_steam_url()
@@ -153,6 +151,9 @@ do_retrigger()
 
     # In retrigger mode, we want to wait a bit for steam as the common pattern is starting in parallel with a retrigger
     wait_steam 10
+    # This is a truly gnarly way to ensure steam is ready for commands.
+    # TODO literally anything else
+    sleep 6
     send_steam_url "addlibraryfolder" "${url}"
 }
 
