@@ -34,6 +34,32 @@ if ! flock -n 9; then
     exit 1
 fi
 
+# Wait N seconds for steam
+wait_steam()
+{
+    local i=0
+    local wait=$1
+    echo "Waiting up to $wait seconds for steam to load"
+    while ! pgrep -x steamwebhelper && (( i++ < wait )); do
+        sleep 1
+    done
+}
+
+send_steam_url()
+{
+  local url="$1"
+  if pgrep -x "steam" > /dev/null; then
+      local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
+      url=$(urlencode "${mount_point}")
+      # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
+      # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
+      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam ${url@Q}"
+      echo "Sent URL to steam: $url"
+  else
+      echo "Could not send steam URL $url -- steam not running"
+  fi
+}
+
 # From https://gist.github.com/HazCod/da9ec610c3d50ebff7dd5e7cac76de05
 urlencode()
 {
@@ -94,9 +120,9 @@ do_mount()
     #  {"type":"s","data":["/run/media/deck/home"]}
     mount_point=$(jq -r '.data[0] | select(type == "string")' <<< "$reply" || true)
     if [[ -z $mount_point ]]; then
-      echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
-      echo "---"$'\n'"$reply"$'\n'"---"
-      exit 1
+        echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
+        echo "---"$'\n'"$reply"$'\n'"---"
+        exit 1
     fi
 
     echo "**** Mounted ${DEVICE} at ${mount_point} ****"
@@ -104,23 +130,26 @@ do_mount()
     url=$(urlencode "${mount_point}")
 
     # If Steam is running, notify it
-    if pgrep -x "steam" > /dev/null; then
-        # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
-        # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-        systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://addlibraryfolder/${url@Q}"
-    fi
+    send_steam_url "steam://addlibraryfolder/${url}"
 }
 
 do_unmount()
 {
     # If Steam is running, notify it
-    if pgrep -x "steam" > /dev/null; then
-        local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-        url=$(urlencode "${mount_point}")
-        # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
-        # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-        systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://removelibraryfolder/${url@Q}"
-    fi
+    local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
+    [[ -n $url ]] || return 0
+    url=$(urlencode "${mount_point}")
+    send_steam_url "steam://removelibraryfolder/${url}"
+}
+
+do_retrigger()
+{
+    local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
+    url=$(urlencode "${mount_point}")
+    [[ -n $url ]] || return 0
+
+    wait_steam 10
+    send_steam_url "steam://addlibraryfolder/$url"
 }
 
 case "${ACTION}" in
@@ -130,8 +159,10 @@ case "${ACTION}" in
     remove)
         do_unmount
         ;;
+    retrigger)
+        do_retrigger
+        ;;
     *)
         usage
         ;;
 esac
-
