@@ -2,6 +2,7 @@
 
 set -e
 
+MOUNT_LOCK="/var/run/sdcard-mount.lock"
 RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
 
@@ -53,20 +54,12 @@ fi
 
 STORAGE_PARTBASE="${STORAGE_PARTITION#/dev/}"
 
-systemctl stop steamos-automount@"$STORAGE_PARTBASE".service
+systemctl stop sdcard-mount@"$STORAGE_PARTBASE".service
 
-# lock file prevents the mount service from re-mounting as it gets triggered by udev rules.
-#
-# NOTE: Uses a shared lock filename between this and the auto-mount script to ensure we're not double-triggering nor
-# automounting while formatting or vice-versa.
-MOUNT_LOCK="/var/run/jupiter-automount-${STORAGE_PARTBASE//\/_}.lock"
-MOUNT_LOCK_FD=9
-exec 9<>"$MOUNT_LOCK"
-
-if ! flock -n "$MOUNT_LOCK_FD"; then
-  echo "Failed to obtain lock $MOUNT_LOCK, failing"
-  exit 5
-fi
+# lock file prevents the mount service from re-mounting as it gets triggered by udev rules
+on_exit() { rm -f -- "$MOUNT_LOCK"; }
+trap on_exit EXIT
+echo $$ > "$MOUNT_LOCK"
 
 # Test the sdcard
 # Some fake cards advertise a larger size than their actual capacity,
@@ -123,10 +116,10 @@ sync
 udevadm settle
 
 # trigger the mount service
-flock -u "$MOUNT_LOCK_FD"
-if ! systemctl start steamos-automount@"$STORAGE_PARTBASE".service; then
+rm "$MOUNT_LOCK"
+if ! systemctl start sdcard-mount@"$STORAGE_PARTBASE".service; then
     echo "Failed to start mount service"
-    journalctl --no-pager --boot=0 -u steamos-automount@"$STORAGE_PARTBASE".service
+    journalctl --no-pager --boot=0 -u sdcard-mount@"$STORAGE_PARTBASE".service
     exit 5
 fi
 
