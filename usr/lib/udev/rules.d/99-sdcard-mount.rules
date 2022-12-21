@@ -3,5 +3,6 @@
 
 KERNEL=="mmcblk0p[0-9]", ACTION=="add", RUN+="/bin/systemctl start sdcard-mount@%k.service"
 KERNEL=="mmcblk0p[0-9]", ACTION=="remove", RUN+="/bin/systemctl stop sdcard-mount@%k.service"
-KERNEL=="sd[a-z][0-9]", ACTION=="add", RUN+="/bin/systemctl start sdcard-mount@%k.service"
-KERNEL=="sd[a-z][0-9]", ACTION=="remove", RUN+="/bin/systemctl stop sdcard-mount@%k.service"
+# Disabled for non-mmc pending udisks migration
+# KERNEL=="sd[a-z][0-9]", ACTION=="add", RUN+="/bin/systemctl start sdcard-mount@%k.service"
+# KERNEL=="sd[a-z][0-9]", ACTION=="remove", RUN+="/bin/systemctl stop sdcard-mount@%k.service"
