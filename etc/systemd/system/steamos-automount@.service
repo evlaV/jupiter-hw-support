@@ -9,11 +9,10 @@
 # action succeeded and the service is running.
 
 [Unit]
-Description=Mount removable drive %i and notify Steam
+Description=Mount SD card on %i
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
 ExecStart=/usr/lib/hwsupport/steamos-automount.sh add %i
 ExecStop=/usr/lib/hwsupport/steamos-automount.sh remove %i
-ExecReload=/usr/lib/hwsupport/steamos-automount.sh retrigger %i
