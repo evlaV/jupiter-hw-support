@@ -1,0 +1,26 @@
+WARNING BIG FAT WARNING READ READ READ
+
+This unit needs a BIOS update.  BIOS updates are fixing critical memory and other issues right now, don't skip this.
+
+But, Galileo devices can be BRICKED by BIOS updates if you interrupt them.
+
+It gets worse!  Right now, the screen often fails to turn on, or displays garbage, during BIOS updates.
+
+SO READ CAREFULLY:
+- Make sure the unit is plugged in and/or has plenty of battery
+- When you click accept, the unit will reboot
+- Make note of the time
+- DO NOT TOUCH IT for _ten entire minutes_
+- !! It doesn't matter how stuck, off, broken or otherwise, the unit looks.  As long as it is not actively on fire, leave it be.
+- Do not touch it until ten minutes have passed
+
+-> If the unit is still stuck AFTER TEN MINUTES:
+   - Probably the screen failed to turn on after the update. This also happens.
+   - Force cycle it with the power button.
+   - After it beeps and begins booting, WAIT FOR ANOTHER TEN MINUTES before deciding it did not boot!  It may now be finishing its update.
+
+-> If the unit appears bricked and you can no longer get it to boot, ping #steampal-sw - you'll likely need to stop by 13S to get it revived.
+
+The update should be reliable as long as your finger stays the heck away from the power button.
+
+WARNING READ THE ABOVE BEFORE CONTINUING
