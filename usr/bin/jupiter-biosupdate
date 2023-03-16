@@ -49,9 +49,10 @@ BIOS_VERSION_MAP='{
                     , "F7A0111": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                     , "F7A0112": { "default": "F7A0113", "samsung": "F7A0113", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
 
-                    , "F7G0003R2": { "default": "F7G0005", "samsung": "F7G0005", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0003": { "default": "F7G0005", "samsung": "F7G0005", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0004": { "default": "F7G0005", "samsung": "F7G0005", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0003R2": { "default": "F7G0006", "samsung": "F7G0006", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0003": { "default": "F7G0006", "samsung": "F7G0006", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0004": { "default": "F7G0006", "samsung": "F7G0006", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0005": { "default": "F7G0006", "samsung": "F7G0006", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
                   }'
 
 # Bios to attempt to install
