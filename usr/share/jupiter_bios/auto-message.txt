@@ -1,13 +1,14 @@
-This unit needs to apply a BIOS update.
+BIOS Update Incoming!
 
-☢️Galileo devices can be BRICKED by BIOS updates if you interrupt them.  The screen often fails to turn on, or displays garbage, during the update.
+⚠️ MESSING WITH THIS CAN BRICK YOUR DEVICE. Seriously. No joke.
 
-PLEASE READ CAREFULLY:
-- When you click accept, the unit will reboot.
-- 🙅 DO NOT TOUCH IT for _ten entire minutes_. It doesn't matter how stuck, off, or broken it looks.
+Quick Rundown (READ IT!):
 
--> If the unit is still stuck AFTER TEN MINUTES, force cycle it with the power button.  Then, _wait ten minutes_ again to be safe!  It may now be finishing its update.
+1. Click accept, and your device will reboot.
+2. 🚫 DON'T TOUCH for 10 WHOLE MINUTES. Screen might be off, frozen or look dead. We know, just chill.
 
--> If the unit appears bricked, ping #steampal-sw - you'll likely need to stop by 13S to get it revived.
+-> After 10 mins, still stuck? Force cycle with power button. WAIT ANOTHER 10 MINUTES.
 
-🚨 WARNING SCROLL UP AND READ THE ABOVE BEFORE CONTINUING 🚨
+-> Bricked? Congrats, we saw that coming. Ping #steampal-sw and visit 13S for a fix.
+
+🦄 WARNING: Ignoring this is a one-way ticket to Bricksville. Enjoy the ride! 🎢
