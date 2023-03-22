@@ -95,19 +95,14 @@ do_mount()
       exit 1
     fi
 
-    # Ask udisks to auto-mount.  Since this API doesn't let us pass a username to automount as, we need to drop to the
-    # deck user.  Don't do this as a `--user` unit though as their session may not be running.
-    #
-    # This requires the paired polkit file to allow the deck user the filesystem-mount-other-seat permission.
-    #   Working around that would require racily detecting the active VT and binding this invocation to a PAM session on
-    #   that seat/VT.  This is silly.
+    # Ask udisks to auto-mount. This needs a version of udisks that supports the 'as-user' option.
     ret=0
-    reply=$(systemd-run --uid=1000 --pipe                                                          \
-              busctl call --allow-interactive-authorization=false --expect-reply=true --json=short \
+    reply=$(busctl call --allow-interactive-authorization=false --expect-reply=true --json=short   \
                 org.freedesktop.UDisks2                                                            \
                 /org/freedesktop/UDisks2/block_devices/"${DEVBASE}"                                \
                 org.freedesktop.UDisks2.Filesystem                                                 \
-                Mount 'a{sv}' 2                                                                    \
+                Mount 'a{sv}' 3                                                                    \
+                  as-user s deck                                                                   \
                   auth.no_user_interaction b true                                                  \
                   options                  s "$OPTS") || ret=$?
 
