@@ -55,4 +55,12 @@ if [[ "$WRITE_PATH" == /sys/devices/*/*/*/*/hwmon/hwmon*/content_adaptive_bright
    CommitWrite
 fi
 
+if [[ "$WRITE_PATH" == /sys/devices/platform/*/i2c-2/i2c-*/brightness ]]; then
+   CommitWrite
+fi
+
+if [[ "$WRITE_PATH" == /sys/devices/platform/*/i2c-2/i2c-*/bmode ]]; then
+   CommitWrite
+fi
+
 DeclineWrite
