@@ -125,6 +125,22 @@ do_mount()
         exit 1
     fi
 
+    # Create a symlink from /run/media to keep compatibility with apps
+    # that use the older mount point (for SD cards only).
+    case "${DEVBASE}" in
+        mmcblk0p*)
+            if [[ -z "${ID_FS_LABEL}" ]]; then
+                old_mount_point="/run/media/${DEVBASE}"
+            else
+                old_mount_point="/run/media/${mount_point##*/}"
+            fi
+            if [[ ! -d "${old_mount_point}" ]]; then
+                rm -f -- "${old_mount_point}"
+                ln -s -- "${mount_point}" "${old_mount_point}"
+            fi
+            ;;
+    esac
+
     echo "**** Mounted ${DEVICE} at ${mount_point} ****"
 
     # If Steam is running, notify it
@@ -135,8 +151,14 @@ do_unmount()
 {
     # If Steam is running, notify it
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-    [[ -n $mount_point ]] || return 0
-    send_steam_url "removelibraryfolder" "${mount_point}"
+    if [[ -n $mount_point ]]; then
+        send_steam_url "removelibraryfolder" "${mount_point}"
+        # Remove symlink to the mount point that we're unmounting
+        find /run/media -maxdepth 1 -xdev -type l -lname "${mount_point}" -exec rm -- {} \;
+    else
+        # If we don't know the mount point then remove all broken symlinks
+        find /run/media -maxdepth 1 -xdev -xtype l -exec rm -- {} \;
+    fi
 }
 
 do_retrigger()
