@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+exec &> >(tee | logger -t steamos-format-device)
 
 RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
