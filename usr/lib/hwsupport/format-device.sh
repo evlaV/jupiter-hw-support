@@ -69,6 +69,15 @@ if ! flock -n "$MOUNT_LOCK_FD"; then
   exit 5
 fi
 
+# If any partitions on the device are mounted, unmount them before continuing
+# to prevent problems later
+for m in $(lsblk -n "$STORAGE_DEVICE" -o MOUNTPOINTS| awk NF | sort -u); do
+    if ! umount "$m"; then
+        echo "Failed to unmount filesystem: $m"
+        exit 32 # EPIPE
+    fi
+done
+
 # Test the sdcard
 # Some fake cards advertise a larger size than their actual capacity,
 # which can result in data loss or other unexpected behaviour. It is
