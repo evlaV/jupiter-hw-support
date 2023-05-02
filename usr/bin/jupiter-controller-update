@@ -164,7 +164,7 @@ elif [[ $bootloader_type -eq 3 ]]; then
     fi
 
 else
-    info "EXIT: Unknown Device Type ${boottloader_type}"
+    info "EXIT: Unknown Device Type ${bootloader_type}"
     exit 0
 fi
 
@@ -179,16 +179,17 @@ fi
 
 # If Type 2 BL, we need the HW ID to determine if the secondary controller is D21 or D20
 #   For Type 1 bootloader we have all the info we need. Only the orig. D21 / D21 system has that BL
-#   Orig D21/D21 system       Type 1 BL, Primary HWID = 27 (provided for reference)
-#   Hybrid D21 / D20 system   Type 2 BL, Primary HWID = 30  
-#   Homog  D21 / D21 system   Type 2 BL, Primary HWID = 31
+#   Orig    D21/D21 system     Type 1 BL, Primary HWID = 27 (provided for reference)
+#   Hyb     D21 / D20 system   Type 2 BL, Primary HWID = 30  
+#   Hom     D21 / D21 system   Type 2 BL, Primary HWID = 31
+#   Gal Hom D21 / D21 system   Type 2 BL, Primary HWID = 32 
 hybrid=false
 if [[ $bootloader_type -eq 2 ]]; then
   hwid=$("$FIRMWARE_TOOL" gethwid --clean) || die "Failed to get HW ID"
   info "HWID: ${hwid}"
   if [[ $hwid -eq 30 ]]; then
     hybrid=true
-  elif [[ $hwid -eq 31 ]]; then
+  elif [[ $hwid -eq 31 || $hwid -eq 32 ]]; then
     hybrid=false
   else 
     die "Type 2 BL found w/ unknown Primary HWID: ${hwid}"
