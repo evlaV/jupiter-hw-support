@@ -49,15 +49,14 @@ send_steam_url()
 {
   local command="$1"
   local arg="$2"
+  local encoded=$(urlencode "$arg")
   if pgrep -x "steam" > /dev/null; then
-      local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-      url=$(urlencode "${mount_point}")
       # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
       # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${arg@Q}"
-      echo "Sent URL to steam: steam://${command}/${arg}"
+      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
+      echo "Sent URL to steam: steam://${command}/${arg} (steam://${command}/${encoded})"
   else
-      echo "Could not send steam URL $url -- steam not running"
+      echo "Could not send steam URL steam://${command}/${arg} (steam://${command}/${encoded}) -- steam not running"
   fi
 }
 
@@ -96,19 +95,14 @@ do_mount()
       exit 1
     fi
 
-    # Ask udisks to auto-mount.  Since this API doesn't let us pass a username to automount as, we need to drop to the
-    # deck user.  Don't do this as a `--user` unit though as their session may not be running.
-    #
-    # This requires the paired polkit file to allow the deck user the filesystem-mount-other-seat permission.
-    #   Working around that would require racily detecting the active VT and binding this invocation to a PAM session on
-    #   that seat/VT.  This is silly.
+    # Ask udisks to auto-mount. This needs a version of udisks that supports the 'as-user' option.
     ret=0
-    reply=$(systemd-run --uid=1000 --pipe                                                          \
-              busctl call --allow-interactive-authorization=false --expect-reply=true --json=short \
+    reply=$(busctl call --allow-interactive-authorization=false --expect-reply=true --json=short   \
                 org.freedesktop.UDisks2                                                            \
                 /org/freedesktop/UDisks2/block_devices/"${DEVBASE}"                                \
                 org.freedesktop.UDisks2.Filesystem                                                 \
-                Mount 'a{sv}' 2                                                                    \
+                Mount 'a{sv}' 3                                                                    \
+                  as-user s deck                                                                   \
                   auth.no_user_interaction b true                                                  \
                   options                  s "$OPTS") || ret=$?
 
@@ -126,27 +120,45 @@ do_mount()
         exit 1
     fi
 
+    # Create a symlink from /run/media to keep compatibility with apps
+    # that use the older mount point (for SD cards only).
+    case "${DEVBASE}" in
+        mmcblk0p*)
+            if [[ -z "${ID_FS_LABEL}" ]]; then
+                old_mount_point="/run/media/${DEVBASE}"
+            else
+                old_mount_point="/run/media/${mount_point##*/}"
+            fi
+            if [[ ! -d "${old_mount_point}" ]]; then
+                rm -f -- "${old_mount_point}"
+                ln -s -- "${mount_point}" "${old_mount_point}"
+            fi
+            ;;
+    esac
+
     echo "**** Mounted ${DEVICE} at ${mount_point} ****"
 
-    url=$(urlencode "${mount_point}")
-
     # If Steam is running, notify it
-    send_steam_url "addlibraryfolder" "${url}"
+    send_steam_url "addlibraryfolder" "${mount_point}"
 }
 
 do_unmount()
 {
     # If Steam is running, notify it
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-    [[ -n $mount_point ]] || return 0
-    url=$(urlencode "${mount_point}")
-    send_steam_url "removelibraryfolder" "${url}"
+    if [[ -n $mount_point ]]; then
+        send_steam_url "removelibraryfolder" "${mount_point}"
+        # Remove symlink to the mount point that we're unmounting
+        find /run/media -maxdepth 1 -xdev -type l -lname "${mount_point}" -exec rm -- {} \;
+    else
+        # If we don't know the mount point then remove all broken symlinks
+        find /run/media -maxdepth 1 -xdev -xtype l -exec rm -- {} \;
+    fi
 }
 
 do_retrigger()
 {
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-    url=$(urlencode "${mount_point}")
     [[ -n $mount_point ]] || return 0
 
     # In retrigger mode, we want to wait a bit for steam as the common pattern is starting in parallel with a retrigger
@@ -154,7 +166,7 @@ do_retrigger()
     # This is a truly gnarly way to ensure steam is ready for commands.
     # TODO literally anything else
     sleep 6
-    send_steam_url "addlibraryfolder" "${url}"
+    send_steam_url "addlibraryfolder" "${mount_point}"
 }
 
 case "${ACTION}" in
