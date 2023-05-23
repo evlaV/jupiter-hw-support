@@ -2,6 +2,39 @@
 
 set -e
 
+# Run fstrim using chunks, to allow it to be interruptable, e.g. for system
+# suspend.
+#
+# $1: mount path to fstrim
+function _fstrim()
+{
+    local _path="$1"
+    local _size
+    _size="$(findmnt --output size --raw --noheadings --bytes "$_path")"
+    # Use a 1GB chunk size. This doesn't take too long on a modest SD card. 1GB
+    # may(?) be too small, causing too much overhead with too 1 many calls to
+    # fstrim. So some further optimization is likely needed.
+    local _chunk_size=1073741824
+    local _offset=0
+
+    echo "Running fstrim in 1GB chunks on: $_path"
+    while [ "$_offset" -le "$_size" ]; do
+        fstrim -o "$_offset" -l "$_chunk_size" "$_path"
+        ((_offset+=_chunk_size))
+    done
+}
+
+# Run fstrim on all mounted filesystems. Currently only ext4 and btrfs, and
+# mounted rw. Based loosely on the "util-linux/fstrim -a" implementation.
+function fstrim_all()
+{
+    local _mountpt
+    for _src in $(findmnt --noheadings -t ext4,btrfs -O rw --list --output source -v | sort -u); do
+        _mountpt="$(findmnt --noheadings --output target "$_src" | head -n1)"
+        _fstrim "$_mountpt"
+    done
+}
+
 function is_known_bad_device()
 {
     local sdcard_dir=$(find /sys/class/mmc_host/mmc0/mmc0\:* -maxdepth 0)
@@ -49,9 +82,9 @@ function is_known_bad_device()
 # lets just trim the partitions on the internal drive which we know are
 # safe to trim/discard
 if is_known_bad_device; then
-    fstrim -v /var
-    fstrim -v /home
+    _fstrim /var
+    _fstrim /home
     exit
 fi
 
-fstrim -av
+fstrim_all
