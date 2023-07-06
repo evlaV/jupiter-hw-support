@@ -52,7 +52,20 @@ if [[ ! -e "$STORAGE_DEVICE" ]]; then
 fi
 
 # Prevent accidental formatting of system drives
-if [[ $(lsblk -d -n -r -o hotplug "$STORAGE_DEVICE") != "1" ]]; then
+drive_path=
+removable=
+ret=0
+drive_path=$(busctl --json=short get-property  org.freedesktop.UDisks2 /org/freedesktop/UDisks2/block_devices/mmcblk0 org.freedesktop.UDisks2.Block Drive | jq '.["data"]') || ret=$?
+if [[ $ret -ne 0 ]]; then
+    echo "unable to query drive from udisks for $STORAGE_DEVICE"
+    exit 6 #ENXIO
+fi
+removable=$(busctl --json=short get-property  org.freedesktop.UDisks2 "$drive_path" org.freedesktop.UDisks2.Drive Removable| jq '.["data"]') || ret=$?
+if [[ $ret -ne 0 ]]; then
+    echo "unable to query removable status from udisks for $STORAGE_DEVICE"
+    exit 6 #ENXIO
+fi
+if ! $removable; then
     echo "$STORAGE_DEVICE is not a hotplug device"
     exit 19 #ENODEV
 fi
