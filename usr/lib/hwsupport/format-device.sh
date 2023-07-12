@@ -1,11 +1,14 @@
 #!/bin/bash
 
 set -e
+exec &> >(tee | logger -t steamos-format-device)
 
 RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
+# default owner for the new filesystem
+OWNER="1000:1000"
 
-OPTS=$(getopt -l force,skip-validation,full,quick,device: -n format-device.sh -- "" "$@")
+OPTS=$(getopt -l force,skip-validation,full,quick,owner:,device: -n format-device.sh -- "" "$@")
 
 eval set -- "$OPTS"
 
@@ -15,6 +18,7 @@ while true; do
         --skip-validation) RUN_VALIDATION=0; shift ;;
         --full) EXTENDED_OPTIONS="discard"; shift ;;
         --quick) EXTENDED_OPTIONS="nodiscard"; shift ;;
+        --owner) OWNER="$2"; shift 2;;
         --device) STORAGE_DEVICE="$2"; shift 2 ;;
         --) shift; break ;;
     esac
@@ -24,10 +28,12 @@ if [[ "$#" -gt 0 ]]; then
     echo "Unknown option $1"; exit 22
 fi
 
+EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
+
 # We only support SD/MMC and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
-        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] --device <device>"
+        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] --device <device>"
         exit 19 #ENODEV
         ;;
     /dev/mmcblk?)
@@ -67,6 +73,15 @@ if ! flock -n "$MOUNT_LOCK_FD"; then
   echo "Failed to obtain lock $MOUNT_LOCK, failing"
   exit 5
 fi
+
+# If any partitions on the device are mounted, unmount them before continuing
+# to prevent problems later
+for m in $(lsblk -n "$STORAGE_DEVICE" -o MOUNTPOINTS| awk NF | sort -u); do
+    if ! umount "$m"; then
+        echo "Failed to unmount filesystem: $m"
+        exit 32 # EPIPE
+    fi
+done
 
 # Test the sdcard
 # Some fake cards advertise a larger size than their actual capacity,
