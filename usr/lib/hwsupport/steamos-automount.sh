@@ -107,7 +107,7 @@ do_mount()
                   options                  s "$OPTS") || ret=$?
 
     if [[ $ret -ne 0 ]]; then
-        send_steam_url "devicemountresult" "${DEVBASE}/${ret}"
+        send_steam_url "system/devicemountresult" "${DEVBASE}/${ret}"
         echo "Error mounting ${DEVICE} (status = $ret)"
         exit 1
     fi
