@@ -13,8 +13,9 @@ RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
 # default owner for the new filesystem
 OWNER="1000:1000"
+EXTRA_MKFS_ARGS=()
 
-OPTS=$(getopt -l force,skip-validation,full,quick,owner:,device: -n format-device.sh -- "" "$@")
+OPTS=$(getopt -l force,skip-validation,full,quick,owner:,device:,label: -n format-device.sh -- "" "$@")
 
 eval set -- "$OPTS"
 
@@ -25,6 +26,7 @@ while true; do
         --full) EXTENDED_OPTIONS="discard"; shift ;;
         --quick) EXTENDED_OPTIONS="nodiscard"; shift ;;
         --owner) OWNER="$2"; shift 2;;
+        --label) EXTRA_MKFS_ARGS+=(-L "$2"); shift 2 ;;
         --device) STORAGE_DEVICE="$2"; shift 2 ;;
         --) shift; break ;;
     esac
@@ -39,7 +41,7 @@ EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
 # We only support SD/MMC and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
-        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] --device <device>"
+        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] [--label <label>] --device <device>"
         exit 19 #ENODEV
         ;;
     /dev/mmcblk?)
@@ -133,7 +135,7 @@ echo "stage=formatting"
 sync
 parted --script "$STORAGE_DEVICE" mklabel gpt mkpart primary 0% 100%
 sync
-mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" -F "$STORAGE_PARTITION"
+mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" "${EXTRA_MKFS_ARGS[@]}" -F "$STORAGE_PARTITION"
 sync
 udevadm settle
 
