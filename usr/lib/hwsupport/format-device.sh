@@ -1,7 +1,13 @@
 #!/bin/bash
 
 set -e
-exec &> >(tee | logger -t steamos-format-device)
+
+# If the script is not run from a tty then send a copy of stdout and
+# stderr to the journal. In this case stderr is also redirected to stdout.
+if ! tty -s; then
+    exec 8>&1
+    exec &> >(tee /dev/fd/8 | logger -t steamos-format-device)
+fi
 
 RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
