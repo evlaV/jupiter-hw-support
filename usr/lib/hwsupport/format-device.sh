@@ -14,13 +14,16 @@ EXTENDED_OPTIONS="nodiscard"
 # default owner for the new filesystem
 OWNER="1000:1000"
 EXTRA_MKFS_ARGS=()
+# Increase the version number every time a new option is added
+VERSION_NUMBER=1
 
-OPTS=$(getopt -l force,skip-validation,full,quick,owner:,device:,label: -n format-device.sh -- "" "$@")
+OPTS=$(getopt -l version,force,skip-validation,full,quick,owner:,device:,label: -n format-device.sh -- "" "$@")
 
 eval set -- "$OPTS"
 
 while true; do
     case "$1" in
+        --version) echo $VERSION_NUMBER; exit 0 ;;
         --force) RUN_VALIDATION=0; shift ;;
         --skip-validation) RUN_VALIDATION=0; shift ;;
         --full) EXTENDED_OPTIONS="discard"; shift ;;
@@ -41,7 +44,7 @@ EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
 # We only support SD/MMC and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
-        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] [--label <label>] --device <device>"
+        echo "Usage: $(basename $0) [--version] [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] [--label <label>] --device <device>"
         exit 19 #ENODEV
         ;;
     /dev/mmcblk?)
