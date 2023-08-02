@@ -1,0 +1,10 @@
+[Unit]
+Description=Restart bluetooth on resume
+After=suspend.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/systemctl restart bluetooth
+
+[Install]
+WantedBy=suspend.target
