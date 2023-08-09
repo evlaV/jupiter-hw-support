@@ -27,10 +27,10 @@ JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR=${JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR-
 
 FIRMWARE_DIR=${JUPITER_CONTROLLER_UPDATE_FIRMWARE_DIR:-/usr/share/jupiter_controller_fw_updater}
 
-# Build Date: Tue Aug  8 13:42:28 PDT 2023
-CURRENT_D21_FW_TS=64D12025
-CURRENT_D20_FW_TS=64D12028
-CURRENT_RA4_FW_TS=64D12026
+# Build Date: Wed Aug  9 11:42:43 PDT 2023
+CURRENT_D21_FW_TS=64D3DE23
+CURRENT_D20_FW_TS=64D3DE1C
+CURRENT_RA4_FW_TS=64D3DE1B
 
 CURRENT_FW_FILE_D21="$FIRMWARE_DIR"/D21_APP_REL_${CURRENT_D21_FW_TS}.bin
 CURRENT_FW_FILE_D20="$FIRMWARE_DIR"/D20_APP_REL_${CURRENT_D20_FW_TS}.bin
@@ -40,7 +40,7 @@ if is_ev2; then
   # Last working firmware for JUPITER EV2. For older units we no longer support. 
   # Only needed for D21 units (all we built during this period
   # D21 Date 8-Jul-2022
-  CURRENT_D21_FW_TS=64D12025
+  CURRENT_D21_FW_TS=64D3DE23
   CURRENT_FW_FILE_D21="$FIRMWARE_DIR"/JUP_EV2_REL_62C853C3.bin
 fi
 
@@ -120,7 +120,7 @@ needupdate=""
 # In OOBE builds, we only want to attempt to touch the firmware if it looks to be in the bootloader.
 # Else, leave everything be, and let the subsequent update do the first firmware-touching.
 if [[ $JUPITER_CONTROLLER_UPDATE_IN_OOBE -ne 1 && -e /etc/steamos-oobe-image && $bootloader != "true" ]]; then
-  info "OOBE Build Date: Tue Aug  8 13:42:28 PDT 2023
+  info "OOBE Build Date: Wed Aug  9 11:42:43 PDT 2023
   exit 0
 fi
 
