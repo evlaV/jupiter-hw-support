@@ -40,7 +40,7 @@ if is_ev2; then
   # Last working firmware for JUPITER EV2. For older units we no longer support. 
   # Only needed for D21 units (all we built during this period
   # D21 Date 8-Jul-2022
-  CURRENT_D21_FW_TS=64D3DE23
+  CURRENT_D21_FW_TS=62C853C3
   CURRENT_FW_FILE_D21="$FIRMWARE_DIR"/JUP_EV2_REL_62C853C3.bin
 fi
 
