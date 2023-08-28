@@ -1,24 +1,35 @@
 #!/bin/bash
 
 set -e
-exec &> >(tee | logger -t steamos-format-device)
+
+# If the script is not run from a tty then send a copy of stdout and
+# stderr to the journal. In this case stderr is also redirected to stdout.
+if ! tty -s; then
+    exec 8>&1
+    exec &> >(tee /dev/fd/8 | logger -t steamos-format-device)
+fi
 
 RUN_VALIDATION=1
 EXTENDED_OPTIONS="nodiscard"
 # default owner for the new filesystem
 OWNER="1000:1000"
+EXTRA_MKFS_ARGS=()
+# Increase the version number every time a new option is added
+VERSION_NUMBER=1
 
-OPTS=$(getopt -l force,skip-validation,full,quick,owner:,device: -n format-device.sh -- "" "$@")
+OPTS=$(getopt -l version,force,skip-validation,full,quick,owner:,device:,label: -n format-device.sh -- "" "$@")
 
 eval set -- "$OPTS"
 
 while true; do
     case "$1" in
+        --version) echo $VERSION_NUMBER; exit 0 ;;
         --force) RUN_VALIDATION=0; shift ;;
         --skip-validation) RUN_VALIDATION=0; shift ;;
         --full) EXTENDED_OPTIONS="discard"; shift ;;
         --quick) EXTENDED_OPTIONS="nodiscard"; shift ;;
         --owner) OWNER="$2"; shift 2;;
+        --label) EXTRA_MKFS_ARGS+=(-L "$2"); shift 2 ;;
         --device) STORAGE_DEVICE="$2"; shift 2 ;;
         --) shift; break ;;
     esac
@@ -33,7 +44,7 @@ EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
 # We only support SD/MMC and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
-        echo "Usage: $(basename $0) [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] --device <device>"
+        echo "Usage: $(basename $0) [--version] [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] [--label <label>] --device <device>"
         exit 19 #ENODEV
         ;;
     /dev/mmcblk?)
@@ -48,12 +59,6 @@ case "$STORAGE_DEVICE" in
 esac
 
 if [[ ! -e "$STORAGE_DEVICE" ]]; then
-    exit 19 #ENODEV
-fi
-
-# Prevent accidental formatting of system drives
-if [[ $(lsblk -d -n -r -o hotplug "$STORAGE_DEVICE") != "1" ]]; then
-    echo "$STORAGE_DEVICE is not a hotplug device"
     exit 19 #ENODEV
 fi
 
@@ -76,7 +81,7 @@ fi
 
 # If any partitions on the device are mounted, unmount them before continuing
 # to prevent problems later
-for m in $(lsblk -n "$STORAGE_DEVICE" -o MOUNTPOINTS| awk NF | sort -u); do
+lsblk -n "$STORAGE_DEVICE" -o MOUNTPOINTS | awk NF | sort -u | while read m; do
     if ! umount "$m"; then
         echo "Failed to unmount filesystem: $m"
         exit 32 # EPIPE
@@ -133,7 +138,7 @@ echo "stage=formatting"
 sync
 parted --script "$STORAGE_DEVICE" mklabel gpt mkpart primary 0% 100%
 sync
-mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" -F "$STORAGE_PARTITION"
+mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" "${EXTRA_MKFS_ARGS[@]}" -F "$STORAGE_PARTITION"
 sync
 udevadm settle
 
