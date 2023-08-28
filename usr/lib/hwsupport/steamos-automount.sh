@@ -20,6 +20,8 @@ fi
 ACTION=$1
 DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
+DECK_UID=$(id -u deck)
+DECK_GID=$(id -g deck)
 
 # Shared between this and the auto-mount script to ensure we're not double-triggering nor automounting while formatting
 # or vice-versa.
@@ -53,7 +55,7 @@ send_steam_url()
   if pgrep -x "steam" > /dev/null; then
       # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
       # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
+      systemd-run -M ${DECK_UID}@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
       echo "Sent URL to steam: steam://${command}/${arg} (steam://${command}/${encoded})"
   else
       echo "Could not send steam URL steam://${command}/${arg} (steam://${command}/${encoded}) -- steam not running"
@@ -119,6 +121,15 @@ do_mount()
         echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
         echo "---"$'\n'"$reply"$'\n'"---"
         exit 1
+    fi
+
+    # If the filesystem is not owned by the deck user make an idmapped mount
+    # so we can use it without changing its actual ownership.
+    fs_root_uid=$(stat -c %u "${mount_point}")
+    if [ "${fs_root_uid}" != "${DECK_UID}" ]; then
+        echo "Device ${DEVICE} is owned by uid ${fs_root_uid}, mapping it to uid ${DECK_UID}"
+        fs_root_gid=$(stat -c %g "${mount_point}")
+        mount "${mount_point}" -o remount,X-mount.idmap="u:${fs_root_uid}:${DECK_UID}:1 g:${fs_root_gid}:${DECK_GID}:1"
     fi
 
     # Create a symlink from /run/media to keep compatibility with apps
