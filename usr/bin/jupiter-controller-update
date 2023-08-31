@@ -120,7 +120,6 @@ needupdate=""
 # In OOBE builds, we only want to attempt to touch the firmware if it looks to be in the bootloader.
 # Else, leave everything be, and let the subsequent update do the first firmware-touching.
 if [[ $JUPITER_CONTROLLER_UPDATE_IN_OOBE -ne 1 && -e /etc/steamos-oobe-image && $bootloader != "true" ]]; then
-  info "OOBE Build Date: Fri Aug 25 11:24:58 PDT 2023
   exit 0
 fi
 
