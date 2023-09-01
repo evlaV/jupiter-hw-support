@@ -76,7 +76,7 @@ exec 9<>"$MOUNT_LOCK"
 
 if ! flock -n "$MOUNT_LOCK_FD"; then
   echo "Failed to obtain lock $MOUNT_LOCK, failing"
-  exit 5
+  exit 53
 fi
 
 # If any partitions on the device are mounted, unmount them before continuing
