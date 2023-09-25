@@ -68,6 +68,11 @@ urlencode()
 
 do_mount()
 {
+    declare -i ret
+    # NOTE: these values are ABI, since they are sent to the Steam client
+    readonly FSCK_ERROR=1
+    readonly MOUNT_ERROR=2
+
     # Get info for this drive: $ID_FS_LABEL, and $ID_FS_TYPE
     dev_json=$(lsblk -o PATH,LABEL,FSTYPE --json -- "$DEVICE" | jq '.blockdevices[0]')
     ID_FS_LABEL=$(jq -r '.label | select(type == "string")' <<< "$dev_json")
@@ -95,6 +100,17 @@ do_mount()
       exit 1
     fi
 
+    # Try to repair the filesystem if it's known to have errors.
+    # ret=0 means no errors, 1 means that errors were corrected.
+    # In all other cases we stop here and report an error.
+    ret=0
+    fsck.ext4 -p "${DEVICE}" || ret=$?
+    if (( ret != 0 && ret != 1 )); then
+        send_steam_url "system/devicemountresult" "${DEVBASE}/${FSCK_ERROR}"
+        echo "Error running fsck on ${DEVICE} (status = $ret)"
+        exit 1
+    fi
+
     # Ask udisks to auto-mount. This needs a version of udisks that supports the 'as-user' option.
     ret=0
     reply=$(busctl call --allow-interactive-authorization=false --expect-reply=true --json=short   \
@@ -106,8 +122,8 @@ do_mount()
                   auth.no_user_interaction b true                                                  \
                   options                  s "$OPTS") || ret=$?
 
-    if [[ $ret -ne 0 ]]; then
-        send_steam_url "system/devicemountresult" "${DEVBASE}/${ret}"
+    if (( ret != 0 )); then
+        send_steam_url "system/devicemountresult" "${DEVBASE}/${MOUNT_ERROR}"
         echo "Error mounting ${DEVICE} (status = $ret)"
         exit 1
     fi
