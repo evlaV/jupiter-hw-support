@@ -161,10 +161,8 @@ do_mount()
 
 do_unmount()
 {
-    # If Steam is running, notify it
     local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
     if [[ -n $mount_point ]]; then
-        send_steam_url "removelibraryfolder" "${mount_point}"
         # Remove symlink to the mount point that we're unmounting
         find /run/media -maxdepth 1 -xdev -type l -lname "${mount_point}" -exec rm -- {} \;
     else
