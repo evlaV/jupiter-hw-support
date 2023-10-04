@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Helper to send reload to all active steamos-automount services, via pkexec if necessary/allowed
+# Steam no longer needs an external retrigger so this script does nothing.
+# It will be removed in the future.
 
-set -eu
-
-if [[ $EUID -ne 0 ]];
-then
-    exec pkexec --disable-internal-agent "$(realpath $0)" "$@"
-fi
-
-set -x
-systemctl reload --no-block --state=active steamos-automount@\*
+exit 0
