@@ -34,17 +34,6 @@ if ! flock -n 9; then
     exit 1
 fi
 
-# Wait N seconds for steam
-wait_steam()
-{
-    local i=0
-    local wait=$1
-    echo "Waiting up to $wait seconds for steam to load"
-    while ! pgrep -x steamwebhelper &>/dev/null && (( i++ < wait )); do
-        sleep 1
-    done
-}
-
 send_steam_url()
 {
   local command="$1"
@@ -154,9 +143,6 @@ do_mount()
     esac
 
     echo "**** Mounted ${DEVICE} at ${mount_point} ****"
-
-    # If Steam is running, notify it
-    send_steam_url "addlibraryfolder" "${mount_point}"
 }
 
 do_unmount()
@@ -171,28 +157,12 @@ do_unmount()
     fi
 }
 
-do_retrigger()
-{
-    local mount_point=$(findmnt -fno TARGET "${DEVICE}" || true)
-    [[ -n $mount_point ]] || return 0
-
-    # In retrigger mode, we want to wait a bit for steam as the common pattern is starting in parallel with a retrigger
-    wait_steam 10
-    # This is a truly gnarly way to ensure steam is ready for commands.
-    # TODO literally anything else
-    sleep 6
-    send_steam_url "addlibraryfolder" "${mount_point}"
-}
-
 case "${ACTION}" in
     add)
         do_mount
         ;;
     remove)
         do_unmount
-        ;;
-    retrigger)
-        do_retrigger
         ;;
     *)
         usage
