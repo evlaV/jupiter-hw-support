@@ -72,19 +72,20 @@ BIOS_VERSION_MAP='{
                     , "F7G0012T10": { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
                     , "F7G0013":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                     , "F7G0014":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0014T20": { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0020":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0021":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0022":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0023":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0024":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0025":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0026":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0027":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0028":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0100":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0101":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0101T24":    { "default": "F7G0102T01", "samsung": "F7G0102T01", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0014T20": { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0020":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0021":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0022":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0023":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0024":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0025":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0026":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0027":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0028":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0100":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0101":    { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0101T24": { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0102T01": { "default": "F7G0103",    "samsung": "F7G0103",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                   }'
 
 # Bios to attempt to install
