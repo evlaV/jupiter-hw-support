@@ -79,7 +79,7 @@ do_mount()
     ID_FS_TYPE=$(jq -r '.fstype | select(type == "string")' <<< "$dev_json")
 
     # Global mount options
-    OPTS="rw,noatime"
+    OPTS="noatime"
 
     # File system type specific mount options
     #if [[ ${ID_FS_TYPE} == "vfat" ]]; then
@@ -102,13 +102,15 @@ do_mount()
 
     # Try to repair the filesystem if it's known to have errors.
     # ret=0 means no errors, 1 means that errors were corrected.
-    # In all other cases we stop here and report an error.
+    # In all other cases we try to mount the fs read-only and report an error.
     ret=0
-    fsck.ext4 -p "${DEVICE}" || ret=$?
+    fsck.ext4 -y "${DEVICE}" || ret=$?
     if (( ret != 0 && ret != 1 )); then
         send_steam_url "system/devicemountresult" "${DEVBASE}/${FSCK_ERROR}"
         echo "Error running fsck on ${DEVICE} (status = $ret)"
-        exit 1
+        OPTS+=",ro"
+    else
+        OPTS+=",rw"
     fi
 
     # Ask udisks to auto-mount. This needs a version of udisks that supports the 'as-user' option.
