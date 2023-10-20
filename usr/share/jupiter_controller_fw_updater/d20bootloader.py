@@ -481,10 +481,23 @@ class DogBootloader:
     def write_32b(self, offset, data):
         LOG.debug(f"writing data @ 0x{offset:08x}")
         fmt = "<BBI"
-        self.send(struct.pack(fmt,
-                              ID_FIRMWARE_WRITE_32B,
-                              struct.calcsize("<I") + 32,
-                              offset) + bytes(data))
+        WRITE_RETRIES_NUM = 3
+        for attempt in range(0, WRITE_RETRIES_NUM):
+            exception = None
+            try:
+                self.send(struct.pack(fmt,
+                                      ID_FIRMWARE_WRITE_32B,
+                                      struct.calcsize("<I") + 32,
+                                      offset) + bytes(data))
+            except hid.HIDException as e:
+
+                print("Write fail.. retrying")
+                if attempt == WRITE_RETRIES_NUM - 1:
+                    raise
+                time.sleep(1)
+
+            else:
+                return
 
     def read_32b(self, offset):
         LOG.debug(f"reading data @ 0x{offset:08x}")
