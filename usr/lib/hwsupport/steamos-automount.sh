@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+. /usr/lib/hwsupport/common-functions
+
 # Originally from https://serverfault.com/a/767079
 
 # This script is called from our systemd unit file to mount or unmount
@@ -105,30 +107,13 @@ do_mount()
     fi
 
     # Ask udisks to auto-mount. This needs a version of udisks that supports the 'as-user' option.
-    ret=0
-    reply=$(busctl call --allow-interactive-authorization=false --expect-reply=true --json=short   \
-                org.freedesktop.UDisks2                                                            \
-                /org/freedesktop/UDisks2/block_devices/"${DEVBASE}"                                \
-                org.freedesktop.UDisks2.Filesystem                                                 \
-                Mount 'a{sv}' 3                                                                    \
-                  as-user s deck                                                                   \
-                  auth.no_user_interaction b true                                                  \
-                  options                  s "$OPTS") || ret=$?
-
-    if (( ret != 0 )); then
-        send_steam_url "system/devicemountresult" "${DEVBASE}/${MOUNT_ERROR}"
-        echo "Error mounting ${DEVICE} (status = $ret)"
-        exit 1
-    fi
-
-    # Expected reply is of the format
-    #  {"type":"s","data":["/run/media/deck/home"]}
-    mount_point=$(jq -r '.data[0] | select(type == "string")' <<< "$reply" || true)
-    if [[ -z $mount_point ]]; then
-        echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
-        echo "---"$'\n'"$reply"$'\n'"---"
-        exit 1
-    fi
+    mount_point=$(make_dbus_udisks_call call 'data[0]' s         \
+                                 "block_devices/${DEVBASE}"      \
+                                 Filesystem Mount                \
+                                 'a{sv}' 3                       \
+                                 as-user s deck                  \
+                                 auth.no_user_interaction b true \
+                                 options s "$OPTS")
 
     # Ensure that the deck user can write to the root directory
     if ! setpriv --clear-groups --reuid "${DECK_UID}" --regid "${DECK_GID}" test -w "${mount_point}"; then

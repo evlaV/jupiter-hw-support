@@ -1,0 +1,38 @@
+# -*- shell-script -*-
+
+make_dbus_udisks_call()
+{
+    local cmd=$1
+    local field=$2
+    local type=$3
+    local object=$4
+    local iface=$5
+    local method=$6
+    shift 6
+
+    local ret=0
+    local reply
+    reply=$(busctl "${cmd}" --allow-interactive-authorization=false --expect-reply=true --json=short \
+               org.freedesktop.UDisks2 "/org/freedesktop/UDisks2/${object}" \
+               "org.freedesktop.UDisks2.${iface}" "${method}" "$@") || ret=$?
+
+    if [[ $ret -ne 0 ]]; then
+        echo "Error running ${cmd} ${method} on ${DEVICE} (status = $ret)" >&2
+        exit 1
+    fi
+
+    # Expected reply must be of ${type} contain ${field}: value
+    ret=$(jq -r "if .${field} != null and .type == \"${type}\" then .${field} else \"\" end" <<< "$reply" || true)
+    if [[ -z $ret ]]; then
+        echo "Error when running '${cmd} ${method}' on ${DEVICE}: udisks returned success but could not parse reply:" >&2
+        echo "---"$'\n'"$reply"$'\n'"---" >&2
+        exit 1
+    fi
+
+    # If we are returning an object strip the /org/freedesktop/UDisks2/ prefix
+    if [[ $type = o ]]; then
+        ret="${ret#/org/freedesktop/UDisks2/}"
+    fi
+
+    echo "$ret"
+}
