@@ -25,19 +25,6 @@ DEVICE="/dev/${DEVBASE}"
 DECK_UID=$(id -u deck)
 DECK_GID=$(id -g deck)
 
-# Shared between this and the auto-mount script to ensure we're not double-triggering nor automounting while formatting
-# or vice-versa.
-MOUNT_LOCK="/var/run/jupiter-automount-${DEVBASE//\/_}.lock"
-
-# Obtain lock
-exec 9<>"$MOUNT_LOCK"
-if ! flock -n 9; then
-    echo "$MOUNT_LOCK is active: ignoring action $ACTION"
-    # Do not return a success exit code: it could end up putting the service in 'started' state without doing the mount
-    # work (further start commands will be ignored after that)
-    exit 1
-fi
-
 send_steam_url()
 {
   local command="$1"
@@ -83,14 +70,6 @@ do_mount()
     if [[ ${ID_FS_TYPE} != "ext4" ]]; then
         echo "Error mounting ${DEVICE}: wrong fstype: ${ID_FS_TYPE} - ${dev_json}"
         exit 2
-    fi
-
-    # Prior to talking to udisks, we need all udev hooks (we were started by one) to finish, so we know it has knowledge
-    # of the drive.  Our own rule starts us as a service with --no-block, so we can wait for rules to settle here
-    # safely.
-    if ! udevadm settle; then
-      echo "Failed to wait for \`udevadm settle\`"
-      exit 1
     fi
 
     # Try to repair the filesystem if it's known to have errors.
