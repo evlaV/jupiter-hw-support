@@ -2,9 +2,9 @@
 <RfpDeviceList>
   <Header>
     <FormatVersion>V1.00</FormatVersion>
-    <Version>V3.09</Version>
-    <Date>1 Jan 2022</Date>
-    <Revision>1</Revision>
+    <Version>V3.13</Version>
+    <Date>2 Oct 2023</Date>
+    <Revision>0</Revision>
   </Header>
   <Devices>
     <Device>
@@ -12,7 +12,7 @@
       <DisplayName>RA</DisplayName>
       <FamilyName>RA</FamilyName>
       <Tool>COMMTYPE_E2,COMMTYPE_E2L,COMMTYPE_JLINK,COMMTYPE_COMPORT</Tool>
-      <Interface>IFTYPE_UART2</Interface>
+      <Interface>IFTYPE_UART2,IFTYPE_SWD</Interface>
       <Type>DEVTYPE_RA</Type>
       <Entry>MODEENTRY_DEFAULT</Entry>
       <Flags>0</Flags>
@@ -64,6 +64,17 @@
       <FamilyName>RL78</FamilyName>
       <Tool>COMMTYPE_E1,COMMTYPE_E20,COMMTYPE_E2,COMMTYPE_E2L,COMMTYPE_COMPORT</Tool>
       <Interface>IFTYPE_UART1</Interface>
+      <Type>DEVTYPE_RL78LP</Type>
+      <Entry>MODEENTRY_DEFAULT</Entry>
+      <Flags>0</Flags>
+    </Device>
+    <Device>
+      <Name>RL78LPDF</Name>
+      <DisplayName>RL78/G15, G16</DisplayName>
+      <GroupName>RL78/G15,RL78/G16</GroupName>
+      <FamilyName>RL78</FamilyName>
+      <Tool>COMMTYPE_E2,COMMTYPE_E2L,COMMTYPE_COMPORT</Tool>
+      <Interface>IFTYPE_UART1,IFTYPE_UART2</Interface>
       <Type>DEVTYPE_RL78LP</Type>
       <Entry>MODEENTRY_DEFAULT</Entry>
       <Flags>0</Flags>
@@ -208,6 +219,37 @@
       <Entry>MODEENTRY_RX620</Entry>
       <Flags>0</Flags>
     </Device>
+    <Device>
+      <Name>RISCV</Name>
+      <DisplayName>RISC-V/MC, VC</DisplayName>
+      <GroupName>RISC-V/MC,RISC-V/VC</GroupName>
+      <FamilyName>RISC-V</FamilyName>
+      <Tool>COMMTYPE_COMPORT</Tool>
+      <Interface>IFTYPE_UART2</Interface>
+      <Type>DEVTYPE_SYNERGY</Type>
+      <Entry>MODEENTRY_MANUAL</Entry>
+      <Flags>0</Flags>
+    </Device>
+    <Device>
+      <Name>DA</Name>
+      <DisplayName>DA</DisplayName>
+      <FamilyName>DA</FamilyName>
+      <Tool>COMMTYPE_JLINK</Tool>
+      <Interface>IFTYPE_SWD</Interface>
+      <Type>DEVTYPE_DA</Type>
+      <Entry>MODEENTRY_DEFAULT</Entry>
+      <Flags>0</Flags>
+    </Device>
+    <Device>
+      <Name>TOUCHIC</Name>
+      <DisplayName>Capacitive Touch Sensor Controller</DisplayName>
+      <FamilyName>Capacitive Touch Sensor Controller</FamilyName>
+      <Tool>COMMTYPE_E2,COMMTYPE_E2L</Tool>
+      <Interface>IFTYPE_UART1</Interface>
+      <Type>DEVTYPE_TOUCHIC</Type>
+      <Entry>MODEENTRY_DEFAULT</Entry>
+      <Flags>0</Flags>
+    </Device>
   </Devices>
-  <Checksum>725be330</Checksum>
+  <Checksum>66393429</Checksum>
 </RfpDeviceList>
