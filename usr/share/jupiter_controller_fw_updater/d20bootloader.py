@@ -481,23 +481,11 @@ class DogBootloader:
     def write_32b(self, offset, data):
         LOG.debug(f"writing data @ 0x{offset:08x}")
         fmt = "<BBI"
-        WRITE_RETRIES_NUM = 3
-        for attempt in range(0, WRITE_RETRIES_NUM):
-            exception = None
-            try:
-                self.send(struct.pack(fmt,
-                                      ID_FIRMWARE_WRITE_32B,
-                                      struct.calcsize("<I") + 32,
-                                      offset) + bytes(data))
-            except hid.HIDException as e:
 
-                print("Write fail.. retrying")
-                if attempt == WRITE_RETRIES_NUM - 1:
-                    raise
-                time.sleep(1)
-
-            else:
-                return
+        self.send(struct.pack(fmt,
+                              ID_FIRMWARE_WRITE_32B,
+                              struct.calcsize("<I") + 32,
+                              offset) + bytes(data))
 
     def read_32b(self, offset):
         LOG.debug(f"reading data @ 0x{offset:08x}")
@@ -924,13 +912,18 @@ if __name__ == '__main__':
         cli()
     except hid.HIDException as e:
         print(e)
-        print('ERROR')
+        sys.exit(1)
     except DogBootloaderNotSupported:
         print('NOT SUPPORTED')
+        sys.exit(2)
     except DogBootloaderTimeout:
         print('TIMEOUT')
+        sys.exit(3)
     except DogBootloaderNoDeviceFound:
         print('NO DEVICE FOUND')
+        sys.exit(4)
     except DogBootloaderVerifyError:
         print('Programmed data mismatch')
         print('ERROR')
+        sys.exit(5)
+

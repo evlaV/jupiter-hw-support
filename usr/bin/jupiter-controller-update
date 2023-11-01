@@ -224,12 +224,37 @@ on_error() {
   info "!! Failed to apply firmware update, see above"
   exit $ret
 }
-trap on_error EXIT
+trap on_error SIGINT SIGKILL SIGTERM
 
 run_firmware_tool() {
-  "$FIRMWARE_TOOL" "$@" &
-  update_pid=$!
-  wait $update_pid
+  ARGS=$@
+
+  # We'll catch our own errors here to allow for retrying, so disable '-e'
+  set +e 
+
+  # Allow for a number of retries
+  retry_attempt=0
+  until [ "$retry_attempt" -ge 3 ]; do
+    ${FIRMWARE_TOOL} ${ARGS} &
+    update_pid=$!
+    wait $update_pid
+    last_status=$?
+
+    #info "FW Update returned: $last_status"
+    if [ $last_status -eq 0 ]; then
+      break
+    fi
+
+    ((retry_attempt+=1))
+    info "FW update failed. Retrying... Count: $retry_attempt"
+    sleep 3
+  done
+
+  if [ "$last_status" -ne 0 ]; then
+    info "FW update out of retries"
+    info "!! Failed to apply firmware update, see above"
+    exit $last_status
+  fi
 }
 
 # The background+wait is so our exit handler above can kill it if the script itself is asked to stop.  Because bash.
