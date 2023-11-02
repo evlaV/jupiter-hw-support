@@ -115,7 +115,7 @@ devjq >&2
 ###############################################################################################################################
 # STAGE 2: Now check if we need to update or not.
 ###############################################################################################################################
-needupdate=""
+needs_update=0
 
 # In OOBE builds, we only want to attempt to touch the firmware if it looks to be in the bootloader.
 # Else, leave everything be, and let the subsequent update do the first firmware-touching.
@@ -126,12 +126,12 @@ fi
 # If Primary MCU is in bootloader, then always update
 if [[ $bootloader = "true" ]]; then
     info "Device is in bootloader mode, update required"
-    needupdate=1
+    needs_update=1
 
 # If either timestamp is 0 in non-Type 3 units (Only check dual MCU Types (1 and 2))    
 elif [[ $build_timestamp == $null_build_timestamp ]] || [[ $secondary_build_timestamp == $null_build_timestamp ]] && [[ $bootloader_type -ne 3 ]]; then
     info "Device has missing build timestamp, update required"
-    needupdate=1
+    needs_update=1
 
 # Type 1: Check D21 FW timestamp
 elif [[ $bootloader_type -eq 1 ]]; then
@@ -139,7 +139,7 @@ elif [[ $bootloader_type -eq 1 ]]; then
     if [[ ${build_timestamp} == ${CURRENT_D21_FW_TS} ]]; then
       info "NO UPDATE: Type 1 device is running latest build $CURRENT_D21_FW_TS"
     else
-      needupdate=1
+      needs_update=1
       info "UPDATE: Type 1 device is running build $build_timestamp, updating to build $CURRENT_D21_FW_TS"
     fi
 
@@ -149,7 +149,7 @@ elif [[ $bootloader_type -eq 2 ]]; then
     if [[ $build_timestamp == $CURRENT_D21_FW_TS ]] && [[ $secondary_build_timestamp == $CURRENT_D21_FW_TS || $secondary_build_timestamp == $CURRENT_D20_FW_TS ]]; then
       info "NO UPDATE: Type 1/2 Device is running latest build $CURRENT_D21_FW_TS"
     else
-      needupdate=1
+      needs_update=1
       info "UPDATE: Type 1/2 Device is running builds $build_timestamp | $secondary_build_timestamp, updating to build ($CURRENT_D21_FW_TS | $CURRENT_D21_FW_TS or $CURRENT_D20_FW_TS)"
     fi
 
@@ -158,7 +158,7 @@ elif [[ $bootloader_type -eq 3 ]]; then
     if [[ $build_timestamp == $CURRENT_RA4_FW_TS ]]; then
       info "NO UPDATE: Type 3 Device is running latest build $CURRENT_RA4_FW_TS"
     else
-      needupdate=1
+      needs_update=1
       info "UPDATE: Type 3 Device is running build $build_timestamp, updating to build $CURRENT_RA4_FW_TS"
     fi
 
@@ -168,7 +168,8 @@ else
 fi
 
 # If no update needed, then done.
-if [[ -z $needupdate ]]; then
+if [[ $needs_update -eq 0 ]]; then
+    echo "needs_update=0"
    exit 0
 fi
 
@@ -200,6 +201,17 @@ info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $b
 # Done if check mode
 if [[ -n $checkmode ]]; then
   info "  --check specified, not performing update"
+  echo "needs_update=${needs_update}"
+  if [[ ${bootloader_type} -eq 1 ]]; then
+    echo "time_estimate=25"
+  elif [[ ${bootloader_type} -eq 2 ]]; then
+    echo "time_estimate=70"
+  elif [[ ${bootloader_type} -eq 3 ]]; then
+    echo "time_estimate=40"
+  else 
+    die "Unknown Bootloader Type"
+  fi
+
   if [[ $bootloader = "true" ]]; then
     "$FIRMWARE_TOOL" reset 
   fi
@@ -227,18 +239,16 @@ on_error() {
 trap on_error SIGINT SIGKILL SIGTERM
 
 run_firmware_tool() {
-  ARGS=$@
-
-  # We'll catch our own errors here to allow for retrying, so disable '-e'
-  set +e 
+  ARGS=("$@")
 
   # Allow for a number of retries
   retry_attempt=0
   until [ "$retry_attempt" -ge 3 ]; do
-    ${FIRMWARE_TOOL} ${ARGS} &
+    "${FIRMWARE_TOOL}" "${ARGS[@]}" &
     update_pid=$!
-    wait $update_pid
-    last_status=$?
+    last_status=0
+    wait $update_pid || last_status=$?
+    unset update_pid
 
     #info "FW Update returned: $last_status"
     if [ $last_status -eq 0 ]; then
@@ -253,6 +263,7 @@ run_firmware_tool() {
   if [ "$last_status" -ne 0 ]; then
     info "FW update out of retries"
     info "!! Failed to apply firmware update, see above"
+    "$FIRMWARE_TOOL" reset 
     exit $last_status
   fi
 }
