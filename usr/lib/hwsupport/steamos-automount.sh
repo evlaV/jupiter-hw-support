@@ -20,6 +20,8 @@ fi
 ACTION=$1
 DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
+DECK_UID=$(id -u deck)
+DECK_GID=$(id -g deck)
 
 # Shared between this and the auto-mount script to ensure we're not double-triggering nor automounting while formatting
 # or vice-versa.
@@ -42,7 +44,7 @@ send_steam_url()
   if pgrep -x "steam" > /dev/null; then
       # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
       # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-      systemd-run -M 1000@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
+      systemd-run -M ${DECK_UID}@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
       echo "Sent URL to steam: steam://${command}/${arg} (steam://${command}/${encoded})"
   else
       echo "Could not send steam URL steam://${command}/${arg} (steam://${command}/${encoded}) -- steam not running"
@@ -126,6 +128,11 @@ do_mount()
         echo "Error when mounting ${DEVICE}: udisks returned success but could not parse reply:"
         echo "---"$'\n'"$reply"$'\n'"---"
         exit 1
+    fi
+
+    # Ensure that the deck user can write to the root directory
+    if ! setpriv --clear-groups --reuid "${DECK_UID}" --regid "${DECK_GID}" test -w "${mount_point}"; then
+        chmod 777 "${mount_point}" || true
     fi
 
     # Create a symlink from /run/media to keep compatibility with apps
