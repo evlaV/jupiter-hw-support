@@ -7,5 +7,16 @@ then
     exec pkexec --disable-internal-agent "$0" "$@"
 fi
 
-dmidecode -t 11 | grep "String 2" | cut -d ":" -f 2
+SLOT=2
 
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -s|--slot)
+      SLOT="$2"
+      shift # past argument
+      shift # past value
+      ;;
+  esac
+done
+
+dmidecode -t 11 | grep -- "String $SLOT" | cut -d ":" -f 2 | awk '{$1=$1};1'
