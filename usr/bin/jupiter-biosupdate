@@ -25,6 +25,9 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 #          mode on for the checkpoint BIOS transition is good.
 #
 #          BIOS <= 14 to BIOS >= 20 requires transitioning through the '14T20' or '20T14' BIOS for upgrade/downgrade.
+#
+#          For post-100 BIOS, disabled auto install to prompt the user from steam, due to the more intrusive update
+#          process that turns the screen off for a bit.
 BIOS_VERSION_MAP='{
                     "F7A0019": { "default": "F7A0119", "samsung": "F7A0119", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
                     , "F7A0020": { "default": "F7A0119", "samsung": "F7A0119", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
@@ -85,12 +88,12 @@ BIOS_VERSION_MAP='{
                     , "F7G0026":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                     , "F7G0027":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
                     , "F7G0028":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0100":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0101":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0101T24": { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0102T01": { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0103":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0104":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                    , "F7G0100":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0101":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0101T24": { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0102T01": { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0103":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0104":    { "default": "F7G0105",    "samsung": "F7G0105",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
                   }'
 
 # Bios to attempt to install
