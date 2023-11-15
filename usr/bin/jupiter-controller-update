@@ -123,6 +123,17 @@ if [[ $JUPITER_CONTROLLER_UPDATE_IN_OOBE -ne 1 && -e /etc/steamos-oobe-image && 
   exit 0
 fi
 
+# On galileo units, we do not want to do automated updates until the initial prompt about firmware updates has been
+# presented.  If the device is stuck in bootloader, though, bypass this.
+initial_update_ret=0
+jupiter-initial-firmware-update check || initial_update_ret=$?
+
+if [[ $initial_update_ret -eq 7 && $bootloader != "true" ]]; then
+  info "Galileo device that hasn't prompted for initial firmware yet, not performing updates"
+  info "  run with JUPITER_IGNORE_INITIAL_FIRMWARE_UPDATE=1 to bypass this"
+  exit 0
+fi
+
 # If Primary MCU is in bootloader, then always update
 if [[ $bootloader = "true" ]]; then
     info "Device is in bootloader mode, update required"
