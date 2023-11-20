@@ -1,8 +1,51 @@
 [Plymouth Theme]
 Name=steamos
 Description=Simple device-branded SteamOS splash screen
-ModuleName=script
+ModuleName=two-step
 
-[script]
-ImageDir=/usr/share/plymouth/themes/steamos
-ScriptFile=/usr/share/plymouth/themes/steamos/steamos.script
+[two-step]
+Font=Cantarell 12
+ImageDir=/usr/share/plymouth/themes/spinner
+HorizontalAlignment=.5
+VerticalAlignment=.7
+Transition=none
+TransitionDuration=0.0
+BackgroundStartColor=0x000000
+BackgroundEndColor=0x000000
+ProgressBarBackgroundColor=0x606060
+ProgressBarForegroundColor=0xffffff
+DialogClearsFirmwareBackground=false
+MessageBelowAnimation=true
+
+[boot-up]
+UseAnimation=false
+UseEndAnimation=false
+UseFirmwareBackground=true
+
+[shutdown]
+UseAnimation=false
+UseEndAnimation=false
+UseFirmwareBackground=true
+
+[reboot]
+UseAnimation=false
+UseEndAnimation=false
+UseFirmwareBackground=true
+
+[updates]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+UseFirmwareBackground=true
+
+[system-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+UseFirmwareBackground=true
+
+[firmware-upgrade]
+SuppressMessages=true
+ProgressBarShowPercentComplete=true
+UseProgressBar=true
+UseFirmwareBackground=true
