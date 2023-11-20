@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -euo pipefail
+
+info() { printf "%s\n" "$*" >&2; }
+die() { info "!! $*"; exit 1; }
+
+get_time_estimate() {
+  local update_data
+  update_data=$(jupiter-controller-update --check 2>&1 | grep -o "^needs_update=.*\|^time_estimate=.*")
+
+  if echo "$update_data" | grep -q "^needs_update=1$"; then
+    echo "$update_data" | sed -n "s/^time_estimate=\([0-9]\+\)$/\1/p"
+  fi
+}
+
+plymouth_start() {
+  local -i existing_plymouth=1
+
+  plymouth --ping && existing_plymouth=1 || existing_plymouth=0
+
+  if (( existing_plymouth == 0 )); then
+    systemctl start plymouth-start.service
+  fi
+}
+
+plymouth_render() {
+  update_progress() {
+    calc(){ awk "BEGIN { print ""$*"" }"; }
+
+    # shellcheck disable=SC2155 # we don't care if it fails
+    local sleep_time=$(calc "$time_estimate/100")
+
+    for percent in $(seq 1 100); do
+      plymouth system-update --progress="$percent"
+      sleep "$sleep_time"
+    done
+  }
+
+  plymouth change-mode --system-upgrade
+  plymouth show-splash
+
+  update_progress
+}
+
+plymouth_stop() {
+  # Switch to the normal (static) boot mode. We expect for the service
+  # to be killed just before sddm and as sddm kicks in, the session would
+  # present their own splash screen.
+  #
+  # Currently only KDE/plasma does so, gamescope lacks one.
+  #
+  # We're interested in a static boot image, since there can be no animation
+  # when plymouth is gone, even though we can have the old FB still retained
+  # and presented - given resent enough kernel and plymouth.
+  plymouth change-mode --boot-up || true
+}
+
+on_error() {
+  local ret=$?
+  plymouth_stop
+  exit $ret
+}
+
+# shellcheck disable=SC2155 # we don't care if it fails
+declare -r time_estimate=$(get_time_estimate)
+
+if [[ -z "$time_estimate" ]]; then
+  info "No update/time estimate available, skipping."
+  exit 0
+fi
+
+trap on_error SIGINT SIGTERM
+
+plymouth_start
+plymouth_render &
+
+jupiter-controller-update
+
+plymouth_stop
+
+trap - EXIT
