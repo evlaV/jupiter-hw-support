@@ -209,6 +209,27 @@ fi
 
 info "Found candidate device, build timestamp ${build_timestamp:-unknown}, BL $bootloader, BL_Type $major_release, HYB ${hybrid}"
 
+check_firmware() {
+  if ! [[ -f "$1" ]]; then
+     die "Required firmware file $1 is missing"
+  fi
+}
+
+if [[ ${bootloader_type} -eq 1 ]]; then
+  check_firmware "$CURRENT_FW_FILE_D21"
+elif [[ ${bootloader_type} -eq 2 ]]; then
+  if [[ $hybrid = "true" ]]; then
+    check_firmware "$CURRENT_FW_FILE_D20"
+  else
+    check_firmware "$CURRENT_FW_FILE_D21"
+  fi
+  check_firmware "$CURRENT_FW_FILE_D21"
+elif [[ ${bootloader_type} -eq 3 ]]; then
+  check_firmware "$CURRENT_FW_FILE_RA4"
+else
+  die "Unknown Bootloader Type"
+fi
+
 # Done if check mode
 if [[ -n $checkmode ]]; then
   info "  --check specified, not performing update"
