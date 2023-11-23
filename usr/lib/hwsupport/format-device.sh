@@ -72,7 +72,7 @@ if ! create_lock_file "$STORAGE_PARTBASE"; then
     exit 53
 fi
 
-systemctl stop "steamos-automount@${STORAGE_PARTBASE}.service"
+/usr/lib/hwsupport/steamos-automount.sh remove "${STORAGE_PARTBASE}"
 
 # If any partitions on the device are mounted, unmount them before continuing
 # to prevent problems later
@@ -137,10 +137,9 @@ mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" "${EXTRA_MKFS_ARGS[@]}" -F "$S
 sync
 udevadm settle
 
-# trigger the mount service
-if ! systemctl start steamos-automount@"$STORAGE_PARTBASE".service; then
-    echo "Failed to start mount service"
-    journalctl --no-pager --boot=0 -u steamos-automount@"$STORAGE_PARTBASE".service
+# Mount the device
+if ! /usr/lib/hwsupport/steamos-automount.sh add "$STORAGE_PARTBASE"; then
+    echo "Failed to mount ${STORAGE_PARTBASE}"
     exit 5
 fi
 

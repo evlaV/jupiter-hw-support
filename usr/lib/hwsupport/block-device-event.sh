@@ -45,12 +45,12 @@ do_add()
         exit 0
     fi
 
-    systemctl start "steamos-automount@${DEVBASE}.service"
+    /usr/lib/hwsupport/steamos-automount.sh add "${DEVBASE}"
 }
 
 do_remove()
 {
-    systemctl stop "steamos-automount@${DEVBASE}.service"
+    /usr/lib/hwsupport/steamos-automount.sh remove "${DEVBASE}"
 }
 
 case "${ACTION}" in
