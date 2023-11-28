@@ -2,6 +2,13 @@
 
 devicepath=/dev/serial/by-id/usb-Renesas_RA_USB_Boot-if00
 
+function set_controller_power ()
+{
+    local valve_mfd="/sys/devices/pci0000:00/0000:00:14.3/PNP0C09:00/VLV0100:00"
+
+    sudo su -c "echo $1 > ${valve_mfd}/controller_board_power"
+}
+
 if [ $# -eq 0 ]; then
     echo "Usage rfp_cli_linux.sh <bootloader.srec> [--erase_prov_and_cal] [--erase_app]"
     echo "      Defaults are to preserve provisioning and application"
@@ -26,7 +33,6 @@ else
   echo "Preserving application"
 fi
 
-chmod u+x "linux_host_tools/BatCtrl"
 chmod u+x "linux_host_tools/rfp-linux-x64/rfp-cli"
 
 
@@ -36,9 +42,9 @@ t=1
 found=0
 while [ $t -le 10 ]
 do
-  sudo ./linux_host_tools/BatCtrl SetCBPower 0 > /dev/null
+  set_controller_power 0
   sleep 1
-  sudo ./linux_host_tools/BatCtrl SetCBPower 1 > /dev/null
+  set_controller_power 1
   #It takes a while for the RA bootloader to enumerate
   sleep 4
   result=$(lsusb -d 045b:0261)
@@ -77,9 +83,9 @@ foundsteamdevice=0
 t=0
 while [ $t -le 10 ]
 do
-  sudo ./linux_host_tools/BatCtrl SetCBPower 0 > /dev/null
+  set_controller_power 0
   sleep 1
-  sudo ./linux_host_tools/BatCtrl SetCBPower 1 > /dev/null
+  set_controller_power 1
   sleep 2
   result=$(lsusb -d 28de:1004 -d 28de:1205)
   if [ $? -ne 0 ]
