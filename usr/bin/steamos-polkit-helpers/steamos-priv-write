@@ -71,4 +71,8 @@ if [[ "$WRITE_PATH" == /sys/devices/platform/*/i2c-2/i2c-*/bmode ]]; then
    CommitWrite
 fi
 
+if [[ "$WRITE_PATH" == /sys/class/leds/status\:white/led_brightness_multiplier ]]; then
+   CommitWrite
+fi
+
 DeclineWrite
