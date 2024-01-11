@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Steam no longer needs an external retrigger so this script does nothing.
-# It will be removed in the future.
-
-exit 0
