@@ -9,6 +9,14 @@ root = true
 
 # shell scripts in this project have "standardized" on using indentation with 4
 # spaces
-[usr/bin/**]
+[*]
 indent_style = space
 indent_size = 4
+
+[*.py]
+indent_style = tab
+indent_size = 8
+
+[*.policy]
+indent_size = 2
+indent_style = space
