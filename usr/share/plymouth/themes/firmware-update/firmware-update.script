@@ -1,0 +1,136 @@
+############################################################################
+# content:
+ttext   = "Updating Firmware: Do Not Power Off";
+font    = "Sans 28";
+bg      = Image("steamos-update.png");
+spinner = Image("gear.png");
+title   = Image.Text(ttext, 1, 1, 1, 1.0, font);
+pbox    = Image("prog-box.png");
+pbar    = Image("prog-bar.png");
+
+Window.SetBackgroundColor( 0.0, 0.0, 0.0 );
+
+############################################################################
+# layout:
+pad_y   = 10;
+pad_x   = 10;
+screen_h= Window.GetHeight();
+screen_w= Window.GetWidth();
+# This isn't guaranteed to be right but it's close enough given we don't have
+# the full font metrics here and we're allowed to clip the descenders anyway:
+font_h  = title.GetHeight();
+z_bg    = 1;
+z_icons = 10;
+z_text  = 20;
+
+############################################################################
+# Put the splash and gear icon in the middle:
+splash.sprite = Sprite();
+splash.x      = ( screen_w - bg.GetWidth()  ) / 2;
+splash.y      = ( screen_h - bg.GetHeight() ) / 2;
+splash.sprite.SetOpacity  ( 0.0 );
+splash.sprite.SetPosition ( splash.x, splash.y, z_bg );
+splash.sprite.SetImage    ( bg );
+
+logo.sprite = Sprite();
+logo.angle  = 0.0;
+logo.x      = ( screen_w - spinner.GetWidth()  ) / 2 - 1;
+logo.y      = ( screen_h - spinner.GetHeight() ) / 2 - 1;
+# 10 seconds to do a full rotation, aka 0.1 rps
+# 1 rps = 360/50 degrees per tick) = 180/25 deg/t = 3.1415/25 r/t
+logo.spin   = 3.1415 / 250;
+logo.image  = spinner;
+logo.sprite.SetOpacity  ( 0.0 );
+logo.sprite.SetPosition ( logo.x, logo.y, z_icons );
+logo.sprite.SetImage    ( spinner );
+
+############################################################################
+# centred title
+head.sprite = Sprite();
+head.x      = screen_w  / 2 - title.GetWidth() / 2;
+head.y      = pad_y;
+head.sprite.SetOpacity  ( 0.0 );
+head.sprite.SetPosition ( head.x, head.y, z_text );
+head.sprite.SetImage    ( title );
+
+############################################################################
+# log messages not centred, we don't know how long they'll be
+mesg.sprite = Sprite();
+mesg.x      = pad_x;
+mesg.y      = screen_h - font_h - pad_y;
+mesg.sprite.SetOpacity  ( 0.0 );
+mesg.sprite.SetPosition ( mesg.x, mesg.y, z_text );
+
+############################################################################
+# progress box ½ way between logo and log messages
+progress_box.sprite = Sprite();
+progress_box.image  = pbox;
+progress_box.x      = ( screen_w - pbox.GetWidth() ) / 2;
+progress_box.y      = ( (screen_h / 2) + mesg.y - pbox.GetHeight() ) / 2;
+progress_box.sprite.SetOpacity  ( 0.0 );
+progress_box.sprite.SetPosition ( progress_box.x, progress_box.y, z_icons );
+progress_box.sprite.SetImage    ( pbox );
+
+progress_bar.sprite = Sprite();
+progress_bar.raw    = pbar;
+progress_bar.image  = pbar;
+progress_bar.x      = ( screen_w - pbar.GetWidth() ) / 2;
+progress_bar.y      = progress_box.y + (pbox.GetHeight() - pbar.GetHeight()) / 2;
+progress_bar.sprite.SetOpacity  ( 0.0 );
+progress_bar.sprite.SetPosition ( progress_bar.x, progress_bar.y, z_icons + 1 );
+
+############################################################################
+# display the always-on UI items
+splash.sprite.SetOpacity       ( 1.0 );
+logo.sprite.SetOpacity         ( 1.0 );
+head.sprite.SetOpacity         ( 1.0 );
+progress_box.sprite.SetOpacity ( 1.0 );
+
+############################################################################
+# drive the constant-motion UI elements (@50 Hz)
+fun tick()
+{
+    logo.angle += logo.spin;
+    logo.sprite.SetImage( logo.image.Rotate( logo.angle ) );
+}
+
+############################################################################
+# display incoming messages from plymouth display-message --text=""
+fun show_message (text)
+{
+    umesg = Image.Text( text, 1, 1, 1, 1.0, font );
+    mesg.sprite.SetImage( umesg );
+    mesg.sprite.SetOpacity( 1.0 );
+}
+
+############################################################################
+# handle plymouth hide-message
+# our UI only shows 1 log line so we don't inspect the text argument, we just
+# hide the curerntly displayed log text
+fun hide_message (text)
+{
+    mesg.SetOpacity( 0.0 );
+}
+
+############################################################################
+# handle plymouth system-update --progress=INTEGER
+# PROGRESS is treated as a %age value and is clipped to the 0-100 range
+fun progress (progress)
+{
+    progress = Math.Clamp( progress, 0, 100 ) / 100;
+
+    local.xscale = progress_bar.raw.GetWidth() * progress;
+    local.yscale = progress_bar.raw.GetHeight();
+
+    if (progress_bar.image.GetWidth () != Math.int( local.xscale ) )
+    {
+        progress_bar.image = progress_bar.raw.Scale( local.xscale, local.yscale );
+        progress_bar.sprite.SetImage( progress_bar.image );
+        progress_bar.sprite.SetOpacity( 1.0 );
+    }
+}
+
+Plymouth.SetSystemUpdateFunction   (progress);
+Plymouth.SetDisplayMessageFunction (show_message);
+Plymouth.SetHideMessageFunction    (hide_message);
+Plymouth.SetRefreshFunction        (tick);
