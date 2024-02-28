@@ -1,10 +1,11 @@
 [Unit]
 Description=Jupiter Controller Firmware Update Service
 Before=display-manager.service
+After=plymouth-quit.service plymouth-deactivate.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/jupiter-controller-update
+ExecStart=/usr/lib/hwsupport/jupiter-controller-update-with-splash
 
 # Fail if we cannot update within 160 seconds.
 TimeoutStartSec=160
