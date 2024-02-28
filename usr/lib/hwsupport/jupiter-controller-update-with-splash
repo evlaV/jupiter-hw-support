@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -eu
+
+declare -r  SIMULATE=/etc/.simulate-firmware-update
+declare -i  EXPECTED_TTL=0
+declare -r  UPDATE_CMD=/usr/bin/jupiter-controller-update
+declare -r  FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
+declare -ar CHECK_CMD=($UPDATE_CMD --check)
+declare     FAKE_TTL=
+shopt -s extglob
+
+firmware_update_required ()
+{
+    local -i rc=1
+    local status=
+    while read -r status
+    do
+        echo "$status"
+        case $status in
+            (time_estimate=+([0-9])) EXPECTED_TTL=${status#*=} ;;
+            (needs_update=[1-9]*)    rc=0 ;;
+        esac
+    done < <("${CHECK_CMD[@]}" | grep -iE '^[a-z]')
+
+    return ${rc}
+}
+
+fake_update_requested ()
+{
+    if [ -e ${SIMULATE} ]
+    then
+        if [ -s ${SIMULATE} ]
+        then
+            read -r FAKE_TTL < <(head -n 1 ${SIMULATE})
+            case $FAKE_TTL in
+                (+([0-9])) EXPECTED_TTL=${FAKE_TTL} ;;
+            esac
+        fi
+        true
+    else
+        false
+    fi
+}
+
+if fake_update_requested
+then
+    # shellcheck disable=SC2086
+    /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
+                           "Simulated Update In Progress : Do NOT Turn Off" \
+                           "${FAKE_CMD}"
+elif firmware_update_required
+then
+    # shellcheck disable=SC2086
+    /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
+                           "Firmware Update In Progress : Do NOT Turn Off" \
+                           "${UPDATE_CMD}"
+else
+    exit 0
+fi
