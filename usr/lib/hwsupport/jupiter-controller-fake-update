@@ -1,0 +1,257 @@
+#!/bin/bash
+
+set -eu
+
+fake_type1_update ()
+{
+    # This fakes a type=1 controller update.
+    # There are 237 messages (captured from a real update)
+    # They are printed approx 0.08 seconds apart
+    local _log=
+    while read -r _log
+    do
+        echo "$_log"
+        sleep 0.08
+    done <<'EOF'
+PTS: 659DA22F, STS: 659DA22F
+[
+  {
+    "path": "/dev/hidraw3",
+    "vendor_id": 10462,
+    "product_id": 4613,
+    "serial_number": "",
+    "release_number": 256,
+    "manufacturer_string": "Valve Software",
+    "product_string": "Steam Deck Controller",
+    "usage_page": 65535,
+    "usage": 1,
+    "interface_number": 2,
+    "build_timestamp": 1704829487,
+    "secondary_build_timestamp": 1704829487,
+    "is_bootloader": false
+  }
+]
+Initial firmware update only necessary for galileo hardware
+UPDATE: Type 1 device is running build 659DA22F, updating to build 659DA22F
+Found candidate device, build timestamp 659DA22F, BL false, BL_Type 1, HYB false
+Updating Type 1 System
+2024-02-26 17:35:04,190 - __main__ - INFO - Looks like we are running an app. Resetting into bootloader
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: \
+Switching to ISP mode: |
+Switching to ISP mode: /
+Switching to ISP mode: -
+Switching to ISP mode: |
+Erasing: /
+Erasing: -
+Erasing: \
+Erasing: |
+Erasing: /
+Erasing: -
+Erasing: \
+Erasing: |
+Erasing: /
+Erasing: |
+Programming: [                                                   ]   0.0 B   0%
+Programming: [                                                 ]   2.6 KiB   1%
+Programming: [#                                                ]   5.3 KiB   2%
+Programming: [#                                                ]   7.9 KiB   3%
+Programming: [##                                               ]  10.5 KiB   5%
+Programming: [###                                              ]  13.1 KiB   6%
+Programming: [###                                              ]  15.8 KiB   7%
+Programming: [####                                             ]  18.4 KiB   8%
+Programming: [####                                             ]  21.0 KiB  10%
+Programming: [#####                                            ]  23.6 KiB  11%
+Programming: [######                                           ]  26.3 KiB  12%
+Programming: [######                                           ]  28.9 KiB  13%
+Programming: [#######                                          ]  31.5 KiB  15%
+Programming: [########                                         ]  34.2 KiB  16%
+Programming: [########                                         ]  36.8 KiB  17%
+Programming: [#########                                        ]  39.4 KiB  18%
+Programming: [#########                                        ]  42.0 KiB  20%
+Programming: [##########                                       ]  44.7 KiB  21%
+Programming: [###########                                      ]  47.3 KiB  22%
+Programming: [###########                                      ]  49.9 KiB  24%
+Programming: [############                                     ]  52.5 KiB  25%
+Programming: [#############                                    ]  55.2 KiB  26%
+Programming: [#############                                    ]  57.8 KiB  27%
+Programming: [##############                                   ]  60.4 KiB  29%
+Programming: [##############                                   ]  63.0 KiB  30%
+Programming: [###############                                  ]  65.7 KiB  31%
+Programming: [################                                 ]  68.3 KiB  32%
+Programming: [################                                 ]  70.9 KiB  34%
+Programming: [#################                                ]  73.5 KiB  35%
+Programming: [#################                                ]  76.2 KiB  36%
+Programming: [##################                               ]  78.8 KiB  37%
+Programming: [###################                              ]  81.4 KiB  39%
+Programming: [###################                              ]  84.0 KiB  40%
+Programming: [####################                             ]  86.7 KiB  41%
+Programming: [#####################                            ]  89.3 KiB  43%
+Programming: [#####################                            ]  91.9 KiB  44%
+Programming: [######################                           ]  94.5 KiB  45%
+Programming: [######################                           ]  97.2 KiB  46%
+Programming: [#######################                          ]  99.8 KiB  48%
+Programming: [########################                         ] 102.4 KiB  49%
+Programming: [########################                         ] 105.0 KiB  50%
+Programming: [#########################                        ] 107.7 KiB  51%
+Programming: [##########################                       ] 110.3 KiB  53%
+Programming: [##########################                       ] 112.9 KiB  54%
+Programming: [###########################                      ] 115.6 KiB  55%
+Programming: [###########################                      ] 118.2 KiB  56%
+Programming: [############################                     ] 120.8 KiB  58%
+Programming: [#############################                    ] 123.4 KiB  59%
+Programming: [#############################                    ] 126.1 KiB  60%
+Programming: [##############################                   ] 128.7 KiB  62%
+Programming: [###############################                  ] 131.3 KiB  63%
+Programming: [###############################                  ] 133.9 KiB  64%
+Programming: [################################                 ] 136.6 KiB  65%
+Programming: [################################                 ] 139.2 KiB  67%
+Programming: [#################################                ] 141.8 KiB  68%
+Programming: [##################################               ] 144.4 KiB  69%
+Programming: [##################################               ] 147.1 KiB  70%
+Programming: [###################################              ] 149.7 KiB  72%
+Programming: [###################################              ] 152.3 KiB  73%
+Programming: [####################################             ] 154.9 KiB  74%
+Programming: [#####################################            ] 157.6 KiB  75%
+Programming: [#####################################            ] 160.2 KiB  77%
+Programming: [######################################           ] 162.8 KiB  78%
+Programming: [#######################################          ] 165.4 KiB  79%
+Programming: [#######################################          ] 168.1 KiB  81%
+Programming: [########################################         ] 170.7 KiB  82%
+Programming: [########################################         ] 173.3 KiB  83%
+Programming: [#########################################        ] 175.9 KiB  84%
+Programming: [##########################################       ] 178.6 KiB  86%
+Programming: [##########################################       ] 181.2 KiB  87%
+Programming: [###########################################      ] 183.8 KiB  88%
+Programming: [############################################     ] 186.4 KiB  89%
+Programming: [############################################     ] 189.1 KiB  91%
+Programming: [#############################################    ] 191.7 KiB  92%
+Programming: [#############################################    ] 194.3 KiB  93%
+Programming: [##############################################   ] 197.0 KiB  94%
+Programming: [###############################################  ] 199.6 KiB  96%
+Programming: [###############################################  ] 202.2 KiB  97%
+Programming: [################################################ ] 204.8 KiB  98%
+Programming: [#################################################] 207.4 KiB 100%
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: \
+Waiting for app to enumerate: |
+Waiting for app to enumerate: /
+Waiting for app to enumerate: -
+Waiting for app to enumerate: |
+SUCCESS
+Firmware updated to 659DA22F
+
+EOF
+}
+
+fake_type1_update
