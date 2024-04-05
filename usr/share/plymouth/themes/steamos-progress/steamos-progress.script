@@ -94,8 +94,7 @@ progress_bar.sprite.SetPosition ( progress_bar.x, progress_bar.y, z_icons + 1 );
 
 ############################################################################
 # display the always-on UI items
-splash.sprite.SetOpacity       ( 1.0 );
-logo.sprite.SetOpacity         ( 1.0 );
+splash.sprite.SetOpacity( 1.0 );
 
 ############################################################################
 # drive the constant-motion UI elements (@50 Hz)
@@ -159,6 +158,12 @@ fun handle_command (text)
         {
             if( global.cmd_arg ) { show_title( global.cmd_arg ); }
             else                 { hide_title(); }
+        }
+
+        if( global.command == "spin-logo" )
+        {
+            if( global.cmd_arg == "on" ) { logo.sprite.SetOpacity( 1.0 ); }
+            else                         { logo.sprite.SetOpacity( 0.0 ); }
         }
     }
 

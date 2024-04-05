@@ -11,6 +11,7 @@ declare -a cmdline=()
 declare -i spinner=0
 declare -a arg=()
 declare -i quiet=0     # whether to pass log messages on to the theme
+declare -i spin_logo=0 # whether to show+spin the theme's "spinner" logo
 declare _arg=
 
 for _arg in "$@"
@@ -37,6 +38,10 @@ EOF
             ;;
         --quiet|-q)
             quiet=1
+            shift
+            ;;
+        --spin-logo)
+            spin_logo=1
             shift
             ;;
     esac
@@ -226,6 +231,13 @@ echo "Displaying splash screen"
 if [ -n "${TITLE:-}" ]
 then
     /usr/bin/plymouth display-message --text="<!set-title>${TITLE}" || :
+fi
+
+if [ ${spin_logo} -gt 0 ]
+then
+    /usr/bin/plymouth display-message --text="<!spin-logo>on"  || :
+else
+    /usr/bin/plymouth display-message --text="<!spin-logo>off" || :
 fi
 
 ############################################################################
