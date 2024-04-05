@@ -4,10 +4,6 @@ set -eu
 shopt -s extglob
 
 declare -r FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
-declare -i DURATION="${1:-20}"
-declare THEME="${2:-steamos-progress}"
-declare TITLE="${3:-}"
-declare -a CMD=("${@:4}")
 declare msg=
 declare theme=
 declare found_theme=
@@ -24,7 +20,7 @@ do
 Usage: ${0##*/} [--help] [LIFESPAN [THEME [TITLE [COMMAND...]]]]
 
   LIFESPAN is the expected life of the command in seconds, or 0 for unknown
-  default: 20
+  default: 0
 
   THEME is the name of the plymouth theme (cf plymouth-set-default-theme -l)
   default: steamos-progress
@@ -40,6 +36,11 @@ EOF
             ;;
     esac
 done
+
+declare -i DURATION="${1:-0}"
+declare    THEME="${2:-steamos-progress}"
+declare -r TITLE="${3:-}"
+declare -a CMD=("${@:4}")
 
 ############################################################################
 # The kernel command line can't have certain args in it as they
