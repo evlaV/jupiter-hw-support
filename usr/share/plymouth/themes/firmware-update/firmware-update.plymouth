@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=firmware-update
-Description=Firmware Update Log Messages plus Optional Progress Bar 
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/firmware-update
-ScriptFile=/usr/share/plymouth/themes/firmware-update/firmware-update.script

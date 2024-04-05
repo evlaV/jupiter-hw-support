@@ -5,7 +5,7 @@ shopt -s extglob
 
 declare -r FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
 declare -i DURATION="${1:-20}"
-declare THEME="${2:-firmware-update}"
+declare THEME="${2:-steamos-progress}"
 declare TITLE="${3:-}"
 declare -a CMD=("${@:4}")
 declare msg=
@@ -27,7 +27,7 @@ Usage: ${0##*/} [--help] [LIFESPAN [THEME [TITLE [COMMAND...]]]]
   default: 20
 
   THEME is the name of the plymouth theme (cf plymouth-set-default-theme -l)
-  default: firmware-update
+  default: steamos-progress
 
   TITLE is the title text to pass to the theme.
   Note that this requires the theme to handle messages of the form

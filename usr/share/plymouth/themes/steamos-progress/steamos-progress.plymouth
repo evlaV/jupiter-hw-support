@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=steamos-progress
+Description=Splash with SteamOS logo + optional title, logging & progress bar
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/steamos-progress
+ScriptFile=/usr/share/plymouth/themes/steamos-progress/steamos-progress.script

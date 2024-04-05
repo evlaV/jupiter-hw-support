@@ -26,7 +26,7 @@ firmware_update_required ()
 if firmware_update_required
 then
     # shellcheck disable=SC2086
-    /usr/bin/plymouth-wrap ${EXPECTED_TTL} firmware-update \
+    /usr/bin/plymouth-wrap ${EXPECTED_TTL} steamos-progress \
                            "Firmware Update In Progress : Do NOT Turn Off" \
                            "${UPDATE_CMD}"
 else
