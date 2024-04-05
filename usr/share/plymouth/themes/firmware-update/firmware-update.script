@@ -1,12 +1,14 @@
 ############################################################################
 # content:
-ttext   = "Updating Firmware: Do Not Power Off";
+ttext   = "SteamOS Update";
 font    = "Sans 28";
 bg      = Image("steamos-update.png");
 spinner = Image("gear.png");
 title   = Image.Text(ttext, 1, 1, 1, 1.0, font);
 pbox    = Image("prog-box.png");
 pbar    = Image("prog-bar.png");
+command = "";
+cmd_arg = "";
 
 Window.SetBackgroundColor( 0.0, 0.0, 0.0 );
 
@@ -47,11 +49,22 @@ logo.sprite.SetImage    ( spinner );
 ############################################################################
 # centred title
 head.sprite = Sprite();
-head.x      = screen_w  / 2 - title.GetWidth() / 2;
-head.y      = pad_y;
-head.sprite.SetOpacity  ( 0.0 );
-head.sprite.SetPosition ( head.x, head.y, z_text );
-head.sprite.SetImage    ( title );
+
+fun show_title (text)
+{
+    title   = Image.Text(text, 1, 1, 1, 1.0, font);
+    head.x  = screen_w  / 2 - title.GetWidth() / 2;
+    head.y  = pad_y;
+    head.sprite.SetOpacity  ( 0.0 );
+    head.sprite.SetPosition ( head.x, head.y, z_text );
+    head.sprite.SetImage    ( title );
+    head.sprite.SetOpacity  ( 1.0 );
+}
+
+fun hide_title ()
+{
+    head.sprite.SetOpacity( 0.0 );
+}
 
 ############################################################################
 # log messages not centred, we don't know how long they'll be
@@ -83,8 +96,6 @@ progress_bar.sprite.SetPosition ( progress_bar.x, progress_bar.y, z_icons + 1 );
 # display the always-on UI items
 splash.sprite.SetOpacity       ( 1.0 );
 logo.sprite.SetOpacity         ( 1.0 );
-head.sprite.SetOpacity         ( 1.0 );
-progress_box.sprite.SetOpacity ( 1.0 );
 
 ############################################################################
 # drive the constant-motion UI elements (@50 Hz)
@@ -95,12 +106,70 @@ fun tick()
 }
 
 ############################################################################
-# display incoming messages from plymouth display-message --text=""
-fun show_message (text)
+# handle command messages <!cmd>args…
+# sets command to a true string value of the command name if found
+# sets cmd_arg to the post '>' payload
+# guarantees both wil be false "" value if not present
+fun _message (text)
 {
     umesg = Image.Text( text, 1, 1, 1, 1.0, font );
     mesg.sprite.SetImage( umesg );
     mesg.sprite.SetOpacity( 1.0 );
+}
+
+# String.Length… doesn't work. ¯\_(ツ)_/¯
+fun strlen (s)
+{
+    local.l = 0;
+    while (String(s).CharAt(local.l)) local.l++;
+    return local.l;
+}
+
+fun handle_command (text)
+{
+    local.idx = 0;
+    local.len = strlen(text);
+    global.command = "";
+    global.cmd_arg = "";
+
+    if( local.len >= 3 &&
+        text.CharAt( 0 ) == "<" &&
+        text.CharAt( 1 ) == "!" )
+    {
+        local.idx = 2;
+        while( local.idx < local.len && global.command == "" )
+        {
+            if( text.CharAt( local.idx ) == ">" )
+            {
+                global.command = text.SubString( 2, local.idx );
+
+                if( local.idx < local.len - 1 )
+                {
+                    global.cmd_arg =
+                      text.SubString( local.idx + 1, local.len );
+                }
+            }
+            local.idx++;
+        }
+    }
+
+    if( global.command )
+    {
+        if( global.command == "set-title" )
+        {
+            if( global.cmd_arg ) { show_title( global.cmd_arg ); }
+            else                 { hide_title(); }
+        }
+    }
+
+    return global.command;
+}
+
+############################################################################
+# display incoming messages from plymouth display-message --text=""
+fun show_message (text)
+{
+    handle_command( String(text) ) || _message( String(text) );
 }
 
 ############################################################################
@@ -118,6 +187,10 @@ fun hide_message (text)
 fun progress (progress)
 {
     progress = Math.Clamp( progress, 0, 100 ) / 100;
+
+    # if this is the 1st time we've been prodded to show the bar
+    # make sure it's visible:
+    progress_box.sprite.SetOpacity ( 1.0 );
 
     local.xscale = progress_bar.raw.GetWidth() * progress;
     local.yscale = progress_bar.raw.GetHeight();

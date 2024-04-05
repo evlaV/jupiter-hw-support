@@ -4,9 +4,10 @@ set -eu
 shopt -s extglob
 
 declare -r FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
-declare -i DURATION=${1:-20}
-declare THEME=${2:-firmware-update}
-declare -a CMD=("${@:3}")
+declare -i DURATION="${1:-20}"
+declare THEME="${2:-firmware-update}"
+declare TITLE="${3:-}"
+declare -a CMD=("${@:4}")
 declare msg=
 declare theme=
 declare found_theme=
@@ -20,13 +21,17 @@ do
     case $_arg in
         --help|-h)
             cat - <<EOF
-Usage: ${0##*/} [--help] [LIFESPAN [THEME [COMMAND...]]]
+Usage: ${0##*/} [--help] [LIFESPAN [THEME [TITLE [COMMAND...]]]]
 
   LIFESPAN is the expected life of the command in seconds, or 0 for unknown
   default: 20
 
   THEME is the name of the plymouth theme (cf plymouth-set-default-theme -l)
   default: firmware-update
+
+  TITLE is the title text to pass to the theme.
+  Note that this requires the theme to handle messages of the form
+  "<!COMMAND>ARGS" specially, so not all themes will support this
 
   COMMAND... the remaining args are the command to wrap
   default: ${FAKE_CMD}
@@ -211,6 +216,11 @@ fi
 
 echo "Displaying splash screen"
 /usr/bin/plymouth show-splash || :
+
+if [ -n "${TITLE:-}" ]
+then
+    /usr/bin/plymouth display-message --text="<!set-title>${TITLE}" || :
+fi
 
 ############################################################################
 # Drive the progress bar based on our expected lifespan.
