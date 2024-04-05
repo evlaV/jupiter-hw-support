@@ -255,4 +255,8 @@ then
     kill -TERM ${spinner} 2>/dev/null || :
 fi
 
-/usr/bin/plymouth system-update --progress=100 || :
+# If we had a duration, make sure the progress bar hits 100%
+if [ ${DURATION} -gt 0 ]
+then
+    /usr/bin/plymouth system-update --progress=100 || :
+fi
