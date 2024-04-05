@@ -228,6 +228,7 @@ fi
 echo "Displaying splash screen"
 /usr/bin/plymouth show-splash || :
 
+# Show the title if it's not empty (requires special handling in the theme)
 if [ -n "${TITLE:-}" ]
 then
     /usr/bin/plymouth display-message --text="<!set-title>${TITLE}" || :
@@ -243,7 +244,7 @@ fi
 ############################################################################
 # Drive the progress bar based on our expected lifespan.
 # It is up to the theme how to display progress (or not)
-# if we don't send it spinner updates:
+# if we don't send it these updates:
 if [ ${DURATION} -gt 0 ]
 then
     (spin ${DURATION}) &
