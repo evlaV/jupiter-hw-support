@@ -10,6 +10,7 @@ declare found_theme=
 declare -a cmdline=()
 declare -i spinner=0
 declare -a arg=()
+declare -i quiet=0     # whether to pass log messages on to the theme
 declare _arg=
 
 for _arg in "$@"
@@ -33,6 +34,10 @@ Usage: ${0##*/} [--help] [LIFESPAN [THEME [TITLE [COMMAND...]]]]
   default: ${FAKE_CMD}
 EOF
             exit 0
+            ;;
+        --quiet|-q)
+            quiet=1
+            shift
             ;;
     esac
 done
@@ -239,7 +244,10 @@ while read -r msg
 do
     if [ -n "$msg" ]
     then
-        /usr/bin/plymouth display-message --text="$msg" || :
+        if [ $quiet -eq 0 ]
+        then
+            /usr/bin/plymouth display-message --text="$msg" || :
+        fi
     fi
 done < <("${CMD[@]}" 2>&1 | filter)
 
