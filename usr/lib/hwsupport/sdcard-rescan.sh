@@ -61,7 +61,7 @@ fi
 RESCAN_LOCK="/run/sdcard-rescan.lock"
 exec 9<>"$RESCAN_LOCK"
 if ! flock -n 9; then
-    echo "Rescanning SD card ${KERNEL_NAME} did not succeed, maybe it's damaged?" 2>&1
+    echo "Rescanning SD card ${KERNEL_NAME} did not succeed, maybe it's damaged?" >&2
     exit 0
 fi
 
