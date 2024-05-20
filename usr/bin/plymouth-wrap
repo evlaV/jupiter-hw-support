@@ -5,11 +5,8 @@ shopt -s extglob
 
 declare -r FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
 declare msg=
-declare theme=
-declare found_theme=
 declare -a cmdline=()
 declare -i spinner=0
-declare -a arg=()
 declare -i quiet=0     # whether to pass log messages on to the theme
 declare -i spin_logo=0 # whether to show+spin the theme's "spinner" logo
 declare _arg=
@@ -20,6 +17,10 @@ do
         --help|-h)
             cat - <<EOF
 Usage: ${0##*/} [--help] [LIFESPAN [THEME [TITLE [COMMAND...]]]]
+
+NOTES: If plymouthd is already running THEME has no effect: plymouthd
+has no mechanism to switch to a different theme after startup.
+Some ${0##*/} features need theme support, which steamos-progress has.
 
   LIFESPAN is the expected life of the command in seconds, or 0 for unknown
   default: 0
@@ -55,52 +56,62 @@ declare -a CMD=("${@:4}")
 ############################################################################
 # The kernel command line can't have certain args in it as they
 # would override any command line parameters we pass to plymouthd
-read -r -a arg < /proc/cmdline
-for _arg in "${arg[@]}"
-do
-    case ${_arg} in
-        (splash|splash=*|plymouth.*) true ;;
-        (*) cmdline+=("$_arg") ;;
-    esac
-done
-
 # It must say 'splash' though or plymouth simply won't render anything:
 # NOTE: not splash=<whatever> though. That has other unwanted behaviours.
-cmdline+=('splash')
+parse_kernel_cmdline()
+{
+    local -a arg=()
+
+    read -r -a arg < /proc/cmdline
+    for _arg in "${arg[@]}"
+    do
+        case ${_arg} in
+            (splash|splash=*|plymouth.*) true ;;
+            (*) cmdline+=("$_arg") ;;
+        esac
+    done
+
+    cmdline+=('splash')
+}
 
 ############################################################################
 # figure out what theme to use
-if [ "$THEME" = default ]
-then
-    THEME=
-else
-    while read -r theme
-    do
-        if [ "$THEME" = "${theme:-}" ]
-        then
-            found_theme="${theme:-}"
-            # don't break here.
-            # plymouth-set-default-theme complains of a broken pipe if you do
-        fi
-    done < <(plymouth-set-default-theme -l)
+set_theme ()
+{
+    local found_theme=
+    local theme=
 
-    if [ -z "${found_theme}" ]
+    if [ "$THEME" = default ]
     then
-        echo "Plymouth theme $THEME not found" >&2
         THEME=
     else
-        # The kernel command line must specify the plymouth theme we want.
-        # Plymouth uses the configuration in /etc even if we specified otherwise
-        # in /run, even though /run is supposed to override /etc.
-        # Plymouth reads the config in /run but discards it before rendering
-        # if 'splash' is specified.
-        # If splash is _not_ specified, it keeps the /run config but doesn't
-        # even try to render anything.
-        # This is why we can't have nice things™.
-        cmdline+=("plymouth.splash=$THEME")
-    fi
-fi
+        while read -r theme
+        do
+            if [ "$THEME" = "${theme:-}" ]
+            then
+                found_theme="${theme:-}"
+                # don't break here.
+                # plymouth-set-default-theme complains of a broken pipe if you do
+            fi
+        done < <(plymouth-set-default-theme -l)
 
+        if [ -z "${found_theme}" ]
+        then
+            echo "Plymouth theme $THEME not found" >&2
+            THEME=
+        else
+            # The kernel command line must specify the plymouth theme we want.
+            # Plymouth uses the configuration in /etc even if we specified otherwise
+            # in /run, even though /run is supposed to override /etc.
+            # Plymouth reads the config in /run but discards it before rendering
+            # if 'splash' is specified.
+            # If splash is _not_ specified, it keeps the /run config but doesn't
+            # even try to render anything.
+            # This is why we can't have nice things™.
+            cmdline+=("plymouth.splash=$THEME")
+        fi
+    fi
+}
 ############################################################################
 # and what command we should wrap
 if [ -z "${CMD[0]:-}" ]
@@ -211,6 +222,8 @@ spin ()
 # as this is where we pass in the desired theme, mode, etc.
 if ! /usr/bin/plymouth --ping
 then
+    parse_kernel_cmdline # sets cmdline
+    set_theme            # adds plymouth.splash=THEME to cmdline
     # Tell plymouthd to shut down when we exit:
     trap "/usr/bin/plymouth quit --retain-splash" 0
     echo "Start plymouthd for ${0##*/}; theme: ${THEME:-default}; cmd: ${CMD[*]}"
