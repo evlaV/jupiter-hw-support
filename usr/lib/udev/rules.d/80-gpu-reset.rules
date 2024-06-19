@@ -3,3 +3,6 @@ ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{PID}!="0"
 
 # Kill SDDM and Gamescope if the GPU crashes and VRAM is lost
 ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{FLAGS}=="1", RUN+="/usr/sbin/systemctl restart sddm"
+
+# If a GPU crash isn't caused by a specific process, kill SDDM too
+ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{PID}=="0", ENV{FLAGS}!="1", RUN+="/usr/sbin/systemctl restart sddm"
