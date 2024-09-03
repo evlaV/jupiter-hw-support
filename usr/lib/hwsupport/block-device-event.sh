@@ -36,13 +36,23 @@ do_add()
         exit 1
     fi
 
-    drive=$(make_dbus_udisks_call get-property data o "block_devices/${DEVBASE}" Block Drive)
-    detected_us=$(make_dbus_udisks_call get-property data t "${drive}" Drive TimeMediaDetected)
-    # The 5 seconds window is taken from the original GNOME fix that inspired this one
-    # https://gitlab.gnome.org/GNOME/gvfs/-/commit/b4800b987b4a8423a52306c9aef35b3777464cc5
-    if (( detected_us / 1000000 + 5 < current_time )); then
-        echo "Skipping mounting /dev/${DEVBASE} because it has not been inserted recently" >&2
-        exit 0
+    # We only want to handle udev 'add' events that happen when a
+    # drive is inserted (and not when it's repartitioned), so here we
+    # check that they arrive shortly after the drive is detected.
+    #
+    # A special case is the cold plug scenario: we always handle 'add'
+    # events during system boot because they can actually arrive late
+    # if the boot process is slow. Therefore we check the arrival time
+    # of the event only if we have already reached multi-user.target.
+    if systemctl -q check multi-user.target; then
+        drive=$(make_dbus_udisks_call get-property data o "block_devices/${DEVBASE}" Block Drive)
+        detected_us=$(make_dbus_udisks_call get-property data t "${drive}" Drive TimeMediaDetected)
+        # The 5 seconds window is taken from the original GNOME fix that inspired this one
+        # https://gitlab.gnome.org/GNOME/gvfs/-/commit/b4800b987b4a8423a52306c9aef35b3777464cc5
+        if (( detected_us / 1000000 + 5 < current_time )); then
+            echo "Skipping mounting /dev/${DEVBASE} because it has not been inserted recently" >&2
+            exit 0
+        fi
     fi
 
     /usr/lib/hwsupport/steamos-automount.sh add "${DEVBASE}"
