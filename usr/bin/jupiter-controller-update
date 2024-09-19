@@ -5,6 +5,13 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+is_steamdeck() {
+  local board_name="$(cat /sys/class/dmi/id/board_name || true)"
+  local board_vendor="$(cat /sys/class/dmi/id/board_vendor || true)"
+
+  [[ $board_vendor = "Valve" && ( $board_name = "Jupiter" || $board_name = "Galileo" ) ]]
+}
+
 # Is this an EV2 or older unit
 is_ev2() {
   local product_serial
@@ -58,6 +65,11 @@ if [[ $# -eq 1 && ${1-} = "--check" ]]; then
   checkmode=1
 elif [[ $# -ne 0 ]]; then
   die "Usage: $0 [--check]"
+fi
+
+if ! is_steamdeck && [[ ${JUPITER_CONTROLLER_UPDATE_SKIP_STEAMDECK_CHECK-} != "1" ]]; then
+  info "Device does not look like a Steam Deck, not attempting to flash any controllers"
+  exit 0
 fi
 
 ###############################################################################################################################

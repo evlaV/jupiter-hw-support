@@ -136,6 +136,13 @@ finish() {
   exit "$exitcode"
 }
 
+is_steamdeck() {
+  local board_name="$(cat /sys/class/dmi/id/board_name || true)"
+  local board_vendor="$(cat /sys/class/dmi/id/board_vendor || true)"
+
+  [[ $board_vendor = "Valve" && ( $board_name = "Jupiter" || $board_name = "Galileo" ) ]]
+}
+
 ##
 ## Args
 ##
@@ -197,7 +204,7 @@ info "$modestring $actionstring"
 product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
 product_year="${product_serial:4:1}"
 product_week="${product_serial:5:2}"
-if [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
+if ! is_steamdeck || [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
   finish 0 false 'Skipping update due to unsupported hardware revision'
 fi
 
