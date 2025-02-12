@@ -1,0 +1,22 @@
+; This file is for unifying the coding style for different editors and IDEs.
+; Plugins are available for notepad++, emacs, vim, gedit,
+; textmate, visual studio, and more.
+;
+; See http://editorconfig.org for details.
+
+# Top-most EditorConfig file.
+root = true
+
+# shell scripts in this project have "standardized" on using indentation with 4
+# spaces
+[*]
+indent_style = space
+indent_size = 4
+
+[*.py]
+indent_style = tab
+indent_size = 8
+
+[*.policy]
+indent_size = 2
+indent_style = space
