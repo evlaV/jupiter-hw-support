@@ -2,6 +2,13 @@
 
 set -e
 
+# This check is only valid for Jupiter devices
+sys_vendor="$(cat /sys/devices/virtual/dmi/id/sys_vendor)"
+product_name="$(cat /sys/devices/virtual/dmi/id/product_name)"
+if [[ "$sys_vendor" != "Valve" || "$product_name" != "Jupiter" ]]; then
+	exit 0
+fi
+
 product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
 
 # Cutoff time for supported prototypes
