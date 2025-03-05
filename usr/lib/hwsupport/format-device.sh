@@ -132,9 +132,8 @@ dd if=/dev/zero of="$STORAGE_DEVICE" bs=512 count=1024
 echo "stage=formatting"
 sync
 parted --script "$STORAGE_DEVICE" mklabel gpt mkpart primary 0% 100%
-sync
+udevadm settle
 mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" "${EXTRA_MKFS_ARGS[@]}" -F "$STORAGE_PARTITION"
-sync
 udevadm settle
 
 # Mount the device
