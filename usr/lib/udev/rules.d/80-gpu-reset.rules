@@ -1,8 +1,15 @@
-# If a GPU crash is caused by a specific process, kill the PID
-ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{PID}!="0", RUN+="/sbin/kill -9 %E{PID}"
+# Only apply to GPU resets
+SUBSYSTEM!="drm", GOTO="gpu_reset_end"
+ENV{DEVTYPE}!="drm_minor", GOTO="gpu_reset_end"
+KERNEL!="card*", GOTO="gpu_reset_end"
 
-# Kill SDDM and Gamescope if the GPU crashes and VRAM is lost
-ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{FLAGS}=="1", RUN+="/usr/sbin/systemctl restart sddm"
+# If a GPU reset is caused by a specific process, kill the PID
+ACTION=="change", ENV{RESET}=="1", ENV{PID}!="0", RUN+="/sbin/kill -9 %E{PID}"
 
-# If a GPU crash isn't caused by a specific process, kill SDDM too
-ACTION=="change", ENV{DEVNAME}=="/dev/dri/card0", ENV{RESET}=="1", ENV{PID}=="0", ENV{FLAGS}!="1", RUN+="/usr/sbin/systemctl restart sddm"
+# Kill SDDM and Gamescope if the GPU reset and VRAM is lost
+ACTION=="change", ENV{RESET}=="1", ENV{FLAGS}=="1", RUN+="/usr/sbin/systemctl restart sddm"
+
+# If a GPU reset isn't caused by a specific process, kill SDDM too
+ACTION=="change", ENV{RESET}=="1", ENV{PID}=="0", ENV{FLAGS}!="1", RUN+="/usr/sbin/systemctl restart sddm"
+
+LABEL="gpu_reset_end"
