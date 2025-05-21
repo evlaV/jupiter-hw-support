@@ -7,5 +7,8 @@ then
     exec pkexec --disable-internal-agent "$0" "$@"
 fi
 
-exec /usr/bin/jupiter-biosupdate "$@"
-
+# Sike!  This is so the steam interface that originally wanted jupiter-biosupdate triggers the whole firmware update
+# logic, which will call back to jupiter-biosupdate on necessary devices.
+#
+# This should all be moved to steamos-manager
+exec /usr/bin/steamos-firmware-update "$@"
