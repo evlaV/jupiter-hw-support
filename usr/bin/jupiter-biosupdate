@@ -269,7 +269,7 @@ biosfile="$BIOS_DIR/$desiredversion$BIOS_SUFFIX"
 
 # Update needed
 if [[ -n $checkmode ]]; then
-  echo "$desiredversion"
+  echo "BIOS $desiredversion"
   finish 7 yes "Updates available, not applying in check mode"
 fi
 
