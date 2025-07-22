@@ -59,7 +59,7 @@ fi
 
 do_add()
 {
-    declare -i current_time=$(date +%s)
+    declare -i current_time=$EPOCHSECONDS
     declare -i detected_us
 
     # Prior to talking to udisks, we need all udev hooks (we were started by one) to finish, so we know it has knowledge
