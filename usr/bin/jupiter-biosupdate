@@ -202,10 +202,10 @@ modestring="Performing"
 info "$modestring $actionstring"
 
 # Check for EV2s which are no longer supported
-product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
+product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial || true)"
 product_year="${product_serial:4:1}"
 product_week="${product_serial:5:2}"
-if ! is_steamdeck || [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
+if ! is_steamdeck || [[ -z $product_serial ]] || [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
   finish 0 false 'Skipping update due to unsupported hardware revision'
 fi
 
@@ -218,9 +218,9 @@ samsung=""
 [[ ${memory_sns[0]:0:3} != K3L ]] || samsung=1
 
 # Read & check curent version
-currentversion="$(cat /sys/devices/virtual/dmi/id/bios_version)"
-echo >&2 "BIOS version: $currentversion"
+currentversion="$(cat /sys/devices/virtual/dmi/id/bios_version || true)"
 [[ -n $currentversion ]] || die "Failed to parse bios version from dmidecode"
+echo >&2 "BIOS version: $currentversion"
 
 # Helper to query the bios version map for currentversion+field (with needlessly wordy variable escaping since current
 # version is an arbitrary string that has contained bad characters historically)

@@ -3,20 +3,20 @@
 set -e
 
 # This check is only valid for Jupiter devices
-sys_vendor="$(cat /sys/devices/virtual/dmi/id/sys_vendor)"
-product_name="$(cat /sys/devices/virtual/dmi/id/product_name)"
+sys_vendor="$(cat /sys/devices/virtual/dmi/id/sys_vendor || true)"
+product_name="$(cat /sys/devices/virtual/dmi/id/product_name || true)"
 if [[ "$sys_vendor" != "Valve" || "$product_name" != "Jupiter" ]]; then
-	exit 0
+  exit 0
 fi
 
-product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
+product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial || true)"
 
 # Cutoff time for supported prototypes
 product_year="${product_serial:4:1}"
 product_week="${product_serial:5:2}"
-if [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
-    echo "Supported: no"
-    exit 1
+if [[ -z $product_serial ]] || [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]; then
+  echo "Supported: no"
+  exit 1
 fi
 
 echo "Supported: yes"

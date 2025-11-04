@@ -15,7 +15,7 @@ is_steamdeck() {
 # Is this an EV2 or older unit
 is_ev2() {
   local product_serial
-  product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)"
+  product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)" || die "Cannot check device serial"
   local product_year="${product_serial:4:1}"
   local product_week="${product_serial:5:2}"
 
