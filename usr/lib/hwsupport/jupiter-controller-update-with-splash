@@ -47,13 +47,13 @@ if fake_update_requested
 then
     # shellcheck disable=SC2086
     /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
-                           "Simulated Update In Progress : Do NOT Turn Off" \
+                           "Simulated Firmware Update..." \
                            "${FAKE_CMD}"
 elif firmware_update_required
 then
     # shellcheck disable=SC2086
     /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
-                           "Firmware Update In Progress : Do NOT Turn Off" \
+                           "Updating Controller Firmware" \
                            "${UPDATE_CMD}"
 else
     exit 0
