@@ -3,10 +3,12 @@
 set -eu
 
 declare -r  SIMULATE=/etc/.simulate-firmware-update
+declare -r  VERBOSE=/etc/.verbose-firmware-update
 declare -i  EXPECTED_TTL=0
 declare -r  UPDATE_CMD=/usr/bin/jupiter-controller-update
 declare -r  FAKE_CMD=/usr/lib/hwsupport/jupiter-controller-fake-update
 declare -ar CHECK_CMD=($UPDATE_CMD --check)
+declare -a  EXTRA_WRAP_ARGS=()
 declare     FAKE_TTL=
 shopt -s extglob
 
@@ -43,16 +45,21 @@ fake_update_requested ()
     fi
 }
 
+if [ ! -e ${VERBOSE} ]
+then
+    EXTRA_WRAP_ARGS+=(--quiet)
+fi
+
 if fake_update_requested
 then
     # shellcheck disable=SC2086
-    /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
+    /usr/bin/plymouth-wrap "${EXTRA_WRAP_ARGS[@]}" ${EXPECTED_TTL} holo \
                            "Simulated Firmware Update..." \
                            "${FAKE_CMD}"
 elif firmware_update_required
 then
     # shellcheck disable=SC2086
-    /usr/bin/plymouth-wrap ${EXPECTED_TTL} holo \
+    /usr/bin/plymouth-wrap "${EXTRA_WRAP_ARGS[@]}" ${EXPECTED_TTL} holo \
                            "Updating Controller Firmware" \
                            "${UPDATE_CMD}"
 else
