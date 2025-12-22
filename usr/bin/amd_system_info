@@ -25,12 +25,12 @@ then
 fi
 
 KERNEL=`uname -r`
-MESA=`pacman -Qs mesa|grep mesa-driver| tail -1|cut -d' ' -f2`
+read -r MESA MESA < <(pacman -Q mesa)
 
 echo
 echo "BIOS:  ${BIOS}"
 echo "KERNEL:${KERNEL}"
-echo "MESA:  ${MESA}"
+echo "MESA:  ${MESA:-Not Found}"
 echo
 cat /etc/steamos-release
 echo
