@@ -19,7 +19,7 @@ is_os_partition ()
     local label=
     local uuid=
     local ignore=
-    # if lsblk errors our we have to bypass the OS partition check anyway
+    # if lsblk errors out we have to bypass the OS partition check anyway
     # shellcheck disable=SC2155
     local partuuid=$(lsblk -ndo partuuid "$dev" || :)
 
@@ -89,12 +89,12 @@ do_add()
         fi
     fi
 
-    /usr/lib/hwsupport/steamos-automount.sh add "${DEVBASE}"
+    /usr/lib/hwsupport/holo-automount.sh add "${DEVBASE}"
 }
 
 do_remove()
 {
-    /usr/lib/hwsupport/steamos-automount.sh remove "${DEVBASE}"
+    /usr/lib/hwsupport/holo-automount.sh remove "${DEVBASE}"
 }
 
 case "${ACTION}" in

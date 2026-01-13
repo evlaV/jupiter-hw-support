@@ -1,10 +1,1 @@
-#!/bin/bash
-
-set -eu
-
-if [[ $EUID -ne 0 ]];
-then
-    exec pkexec --disable-internal-agent "$0" "$@"
-fi
-
-exec systemctl enable --now sshd
+/usr/bin/holo-alias

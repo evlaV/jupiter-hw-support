@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+
+  <vendor>Valve Holo</vendor>
+  <vendor_url>http://www.steampowered.com</vendor_url>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-format-sdcard">
+    <description>Run the holo sdcard helper</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-format-sdcard</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-format-device">
+    <description>Run the holo storage device helper</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-format-device</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-trim-devices">
+    <description>Run the holo trim storage devices helper</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-trim-devices</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-reboot-other">
+    <description>Run the holo reboot helper</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-reboot-other</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-select-branch">
+    <description>Run the holo select branch helper</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-select-branch</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-update">
+    <description>Run the holo update helper</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-update</annotate>
+  </action>
+
+  <!-- factory-reset-config -->
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-factory-reset-config">
+    <description>Run the holo factory reset helper</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-factory-reset-config</annotate>
+  </action>
+
+  <!-- set-hostname -->
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-set-hostname">
+    <description>Set the hostname</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-set-hostname</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-set-timezone">
+    <description>Set the timezone</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-set-timezone</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-priv-write">
+    <description>Helper to write to a set of device nodes</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-priv-write</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-session-select">
+    <description>Helper to switch sessions</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-session-select</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-reboot-now">
+    <description>Reboot system</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-reboot-now</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-poweroff-now">
+    <description>Poweroff system</description>
+    <icon_name>package-x-generic</icon_name> 
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-poweroff-now</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-restart-sddm">
+    <description>Restart SDDM</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-restart-sddm</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-enable-sshd">
+    <description>Enable the SSH server</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-enable-sshd</annotate>
+  </action>
+
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-disable-wireless-power-management">
+    <description>Disable wireless power management</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-disable-wireless-power-management</annotate>
+  </action>
+
+  <!-- devkit-mode -->
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers/holo-devkit-mode">
+    <description>Control devkit services</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-devkit-mode</annotate>
+  </action>
+</policyconfig>
+
