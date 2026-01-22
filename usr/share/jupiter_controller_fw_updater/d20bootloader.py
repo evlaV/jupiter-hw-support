@@ -4,7 +4,6 @@ import click
 import crcmod
 import datetime
 import errno
-import hid
 import math
 import os
 import struct
@@ -18,6 +17,14 @@ from time import sleep
 
 from datetime import datetime
 from enum import IntEnum
+
+if sys.platform == 'win32':
+    path = os.path.abspath(__file__)
+    path = os.path.dirname(os.path.dirname(os.path.dirname(path)))
+    path = os.path.join(path, "Tools", "RTST")
+    os.add_dll_directory(path)
+
+import hid
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -759,8 +766,7 @@ def getdevicesjson():
              'build_timestamp': get_dev_build_timestamp(item)[0],
              'secondary_build_timestamp': get_dev_build_timestamp(item)[1],
              'is_bootloader': item['product_id'] == JUPITER_BOOTLOADER_USB_PID,
-             'path': item['path'].decode('utf-8'),
-             'bus_type': int(item.get('bus_type', hid.BusType.UNKNOWN).value) }
+             'path': item['path'].decode('utf-8') }
            for item in rawdevs ]
 
   print(json.dumps(devs))
@@ -867,7 +873,7 @@ def setunitserial(serial):
 @click.option('--primary/--secondary', default=True)
 def program(firmware, primary):
     with dog(primary) as bootloader:
-        bootloader.upload_firmware(firmware)
+        bootloader.upload_firmware(firmware, do_readback=not primary)
         if primary:
             bootloader.reboot(wait_for_app=True)
     print('SUCCESS')
