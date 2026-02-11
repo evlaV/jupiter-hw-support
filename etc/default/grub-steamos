@@ -19,6 +19,7 @@ amd_iommu=off \
 amdgpu.lockup_timeout=5000,10000,10000,5000 \
 ttm.pages_min=2097152 \
 amdgpu.sched_hw_submission=4 \
+amdgpu.dcdebugmask=0x20000 \
 audit=0 \
 fbcon=vc:4-6 \
 fsck.mode=auto \
