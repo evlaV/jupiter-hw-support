@@ -1,7 +1,7 @@
 # Only apply to GPU resets
 SUBSYSTEM!="drm", GOTO="gpu_reset_end"
 ENV{DEVTYPE}!="drm_minor", GOTO="gpu_reset_end"
-KERNEL!="card*", GOTO="gpu_reset_end"
+KERNEL!="card*", KERNEL!="render*", GOTO="gpu_reset_end"
 
 # If a GPU reset is caused by a specific process, kill the PID
 ACTION=="change", ENV{RESET}=="1", ENV{PID}!="0", RUN+="/sbin/kill -9 %E{PID}"
