@@ -1,0 +1,6 @@
+
+ACTION=="remove", GOTO="vlv_wobt_end"
+
+SUBSYSTEM=="usb", ATTR{idVendor}=="28de", ATTR{idProduct}=="1401", ATTR{power/wakeup}="enabled"
+
+LABEL="vlv_wobt_end"
