@@ -18,6 +18,17 @@
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-format-sdcard</annotate>
   </action>
 
+  <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-grant-cap-sys-nice">
+    <description>Run the holo cap_sys_nice helper</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-grant-cap-sys-nice</annotate>
+  </action>
+
   <action id="org.valve.policykit.holo.pkexec.run-holo-polkit-helpers-holo-format-device">
     <description>Run the holo storage device helper</description>
     <icon_name>package-x-generic</icon_name>
@@ -197,4 +208,3 @@
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/holo-polkit-helpers/holo-devkit-mode</annotate>
   </action>
 </policyconfig>
-
