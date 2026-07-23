@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-declare -r PARTSETS=/efi/SteamOS/partsets/all
-
 . /usr/lib/hwsupport/common-functions
 
 usage()
@@ -11,37 +9,6 @@ usage()
     echo "Usage: $0 {add|remove} device_name (e.g. sdb1)"
     echo "NOTE: Ignores partitions registered in ${PARTSETS}"
     exit 1
-}
-
-is_os_partition ()
-{
-    local -r dev="/dev/${DEVBASE}"
-    local label=
-    local uuid=
-    local ignore=
-    # if lsblk errors out we have to bypass the OS partition check anyway
-    # shellcheck disable=SC2155
-    local partuuid=$(lsblk -ndo partuuid "$dev" || :)
-
-    echo "Checking if $dev is an OS partition ($partuuid) in $PARTSETS" >&2
-
-    if [ ! -r "$PARTSETS" ] || [ ! -b "$dev" ] || [ -z "$partuuid" ]
-    then
-        return 1
-    fi
-
-    # the label and ignore file entries are, in fact, unused:
-    # shellcheck disable=SC2034
-    while read -r label uuid ignore
-    do
-        if [ "$uuid" = "$partuuid" ]
-        then
-            echo "Ignoring device $dev registered in $PARTSETS" >&2
-            return 0
-        fi
-    done < "$PARTSETS"
-
-    return 1
 }
 
 if [[ $# -ne 2 ]]; then
@@ -99,7 +66,7 @@ do_remove()
 
 case "${ACTION}" in
     add)
-        if ! is_os_partition
+        if ! is_os_partition "/dev/${DEVBASE}"
         then
             do_add;
         fi

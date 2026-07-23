@@ -1,5 +1,7 @@
 # -*- shell-script -*-
 
+declare -r PARTSETS=/efi/SteamOS/partsets/all
+
 make_dbus_udisks_call()
 {
     local cmd=$1
@@ -51,4 +53,35 @@ create_lock_file()
         echo "Failed to obtain lock for /dev/${DEVBASE}" >&2
         return 1
     fi
+}
+
+is_os_partition ()
+{
+    local -r dev="$1"
+    local label=
+    local uuid=
+    local ignore=
+    # if lsblk errors out we have to bypass the OS partition check anyway
+    # shellcheck disable=SC2155
+    local partuuid=$(lsblk -ndo partuuid "$dev" || :)
+
+    echo "Checking if $dev is an OS partition ($partuuid) in $PARTSETS" >&2
+
+    if [ ! -r "$PARTSETS" ] || [ ! -b "$dev" ] || [ -z "$partuuid" ]
+    then
+        return 1
+    fi
+
+    # the label and ignore file entries are, in fact, unused:
+    # shellcheck disable=SC2034
+    while read -r label uuid ignore
+    do
+        if [ "$uuid" = "$partuuid" ]
+        then
+            echo "Ignoring device $dev registered in $PARTSETS" >&2
+            return 0
+        fi
+    done < "$PARTSETS"
+
+    return 1
 }
