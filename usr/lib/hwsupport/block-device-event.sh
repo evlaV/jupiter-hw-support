@@ -66,9 +66,14 @@ do_remove()
 
 case "${ACTION}" in
     add)
+        # OS partitions should not trigger this event because we filter them
+        # at the udev rules level, but add an additional sanity check here.
         if ! is_os_partition "/dev/${DEVBASE}"
         then
             do_add;
+        else
+            echo "/dev/${DEVBASE} is an OS partition. This should not have happened!" >&2
+            exit 0
         fi
         ;;
     remove)
