@@ -1,8 +1,11 @@
 # Originally from https://serverfault.com/a/767079
-# Run a mount script through systemd on any mmcblk* and sd* activity
+# Run a mount script through systemd on any block device activity
 
-KERNEL!="mmcblk*|sd*",          GOTO="holo_automount_end"
+KERNEL!="mmcblk*|sd*|nvme*|vd*", GOTO="holo_automount_end"
 ENV{ID_FS_USAGE}!="filesystem", GOTO="holo_automount_end"
+
+# Skip partitions with labels used for the OS
+ENV{PARTNAME}=="esp|efi-*|rootfs-*|var-*|home", GOTO="holo_automount_end"
 
 # The service expects to be asynchronous and shouldn't block udev rules
 ACTION=="add",    RUN+="/bin/systemd-run --no-block --collect /usr/lib/hwsupport/block-device-event.sh add %k"
