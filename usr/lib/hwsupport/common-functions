@@ -1,5 +1,7 @@
 # -*- shell-script -*-
 
+declare -r PARTSETS=/efi/SteamOS/partsets/all
+
 make_dbus_udisks_call()
 {
     local cmd=$1
@@ -17,14 +19,14 @@ make_dbus_udisks_call()
                "org.freedesktop.UDisks2.${iface}" "${method}" "$@") || ret=$?
 
     if [[ $ret -ne 0 ]]; then
-        echo "Error running ${cmd} ${method} on ${DEVICE} (status = $ret)" >&2
+        echo "Error running ${cmd} ${method} on ${object} (status = $ret)" >&2
         exit 1
     fi
 
     # Expected reply must be of ${type} contain ${field}: value
     ret=$(jq -r "if .${field} != null and .type == \"${type}\" then .${field} else \"\" end" <<< "$reply" || true)
     if [[ -z $ret ]]; then
-        echo "Error when running '${cmd} ${method}' on ${DEVICE}: udisks returned success but could not parse reply:" >&2
+        echo "Error when running '${cmd} ${method}' on ${object}: udisks returned success but could not parse reply:" >&2
         echo "---"$'\n'"$reply"$'\n'"---" >&2
         exit 1
     fi
@@ -51,4 +53,35 @@ create_lock_file()
         echo "Failed to obtain lock for /dev/${DEVBASE}" >&2
         return 1
     fi
+}
+
+is_os_partition ()
+{
+    local -r dev="$1"
+    local label=
+    local uuid=
+    local ignore=
+    # if lsblk errors out we have to bypass the OS partition check anyway
+    # shellcheck disable=SC2155
+    local partuuid=$(lsblk -ndo partuuid "$dev" || :)
+
+    echo "Checking if $dev is an OS partition ($partuuid) in $PARTSETS" >&2
+
+    if [ ! -r "$PARTSETS" ] || [ ! -b "$dev" ] || [ -z "$partuuid" ]
+    then
+        return 1
+    fi
+
+    # the label and ignore file entries are, in fact, unused:
+    # shellcheck disable=SC2034
+    while read -r label uuid ignore
+    do
+        if [ "$uuid" = "$partuuid" ]
+        then
+            echo "Ignoring device $dev registered in $PARTSETS" >&2
+            return 0
+        fi
+    done < "$PARTSETS"
+
+    return 1
 }
