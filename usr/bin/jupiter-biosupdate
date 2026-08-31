@@ -61,20 +61,6 @@ BIOS_VERSION_MAP='{
                     , "F7A0121": { "default": "F7A0133", "auto": "true" }
                     , "F7A0131": { "default": "F7A0133", "auto": "true" }
 
-                    , "F7G0003R2":  { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0003":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0004":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0005":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0006":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0007":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0008":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0009":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0010":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0011":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0012":    { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0012T10": { "default": "F7G0014T20", "auto": "false" }
-                    , "F7G0013":    { "default": "F7G0014T20", "auto": "true" }
-                    , "F7G0014":    { "default": "F7G0014T20", "auto": "true" }
                     , "F7G0014T20": { "default": "F7G0114",    "auto": "true" }
                     , "F7G0020":    { "default": "F7G0114",    "auto": "true" }
                     , "F7G0021":    { "default": "F7G0114",    "auto": "true" }
