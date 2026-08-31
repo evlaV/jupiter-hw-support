@@ -10,9 +10,7 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 
 # BIOS versions that can be updated and to what
 # 'default'      - specifies what BIOS this version should be updated to by default
-# 'samsung'      - specifies what BIOS samsung-memory units should update to
 # 'beta'         - if set, the version to update to with --beta or BIOS_BETA_FILE set
-# 'samsung_beta' - if set, the version to update to with --beta or BIOS_BETA_FILE set for samsung units
 # 'args'         - additional args this update should pass to the updater (not used currently)
 # 'auto'         - whether or not to update with --auto
 #
@@ -29,84 +27,84 @@ BIOS_BETA_FILE=/run/jupiter-bios-use-beta
 #          For post-100 BIOS, disabled auto install to prompt the user from steam, due to the more intrusive update
 #          process that turns the screen off for a bit.
 BIOS_VERSION_MAP='{
-                    "F7A0019":   { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0020": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0021": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0022": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0023": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0024": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0025": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0026": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0027": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0028": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0029": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0030": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0031": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0032": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0042": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0100": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0101": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7A0102": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0103": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0104": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0105": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0106": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0107": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0108": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0109": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0110": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0111": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0112": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0113": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0114": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0115": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0116": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0117": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0118": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0119": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0120": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0121": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7A0131": { "default": "F7A0133", "samsung": "F7A0133", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
+                      "F7A0019": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0020": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0021": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0022": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0023": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0024": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0025": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0026": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0027": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0028": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0029": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0030": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0031": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0032": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0042": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0100": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0101": { "default": "F7A0133", "beta": null, "args": "", "auto": "false" }
+                    , "F7A0102": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0103": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0104": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0105": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0106": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0107": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0108": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0109": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0110": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0111": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0112": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0113": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0114": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0115": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0116": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0117": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0118": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0119": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0120": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0121": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
+                    , "F7A0131": { "default": "F7A0133", "beta": null, "args": "", "auto": "true" }
 
-                    , "F7G0003R2":  { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0003":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0004":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0005":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0006":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0007":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0008":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0009":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0010":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0011":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0012":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0012T10": { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0013":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0014":    { "default": "F7G0014T20", "samsung": "F7G0014T20", "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0014T20": { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0020":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0021":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0022":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0023":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0024":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0025":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0026":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0027":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0028":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "true" }
-                    , "F7G0100":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0101":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0101T24": { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0102T01": { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0103":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0104":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0105":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0106":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0107":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0108":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0109":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0110":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0111":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0112":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
-                    , "F7G0113":    { "default": "F7G0114",    "samsung": "F7G0114",    "beta": null, "samsung_beta": null, "args": "", "auto": "false" }
+                    , "F7G0003R2":  { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0003":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0004":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0005":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0006":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0007":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0008":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0009":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0010":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0011":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0012":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0012T10": { "default": "F7G0014T20", "beta": null, "args": "", "auto": "false" }
+                    , "F7G0013":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "true" }
+                    , "F7G0014":    { "default": "F7G0014T20", "beta": null, "args": "", "auto": "true" }
+                    , "F7G0014T20": { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0020":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0021":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0022":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0023":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0024":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0025":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0026":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0027":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0028":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "true" }
+                    , "F7G0100":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0101":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0101T24": { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0102T01": { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0103":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0104":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0105":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0106":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0107":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0108":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0109":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0110":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0111":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0112":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
+                    , "F7G0113":    { "default": "F7G0114",    "beta": null, "args": "", "auto": "false" }
                   }'
 
 # Bios to attempt to install
@@ -214,14 +212,6 @@ if ! is_steamdeck || [[ -z $product_serial ]] || [[ "$product_year" -eq "1" && "
   finish 0 false 'Skipping update due to unsupported hardware revision'
 fi
 
-# Check for samsung memory
-memory_sns=($(dmidecode | awk '/^[^\t]/ {i=0}; /^Memory Device/ {i=1}; /\tPart Number:/ && i { print $3 }' | uniq))
-[[ ${#memory_sns[@]} -eq 1 ]] || die "Couldn't identify this unit from DMI, unexpected memory serials: ${memory_sns[*]}"
-
-# Samsung memory modules have S/Ns beginning with K3L
-samsung=""
-[[ ${memory_sns[0]:0:3} != K3L ]] || samsung=1
-
 # Read & check curent version
 currentversion="$(cat /sys/devices/virtual/dmi/id/bios_version || true)"
 [[ -n $currentversion ]] || die "Failed to parse bios version from dmidecode"
@@ -237,18 +227,13 @@ configfield() {
 }
 
 # Check config table for desired version
-if [[ -n $samsung ]]; then
-  desiredversion=$(configfield "$currentversion" "samsung")
-  desiredversion_beta=$(configfield "$currentversion" "samsung_beta")
-else
-  desiredversion=$(configfield "$currentversion" "default")
-  desiredversion_beta=$(configfield "$currentversion" "beta")
-fi
+desiredversion=$(configfield "$currentversion" "default")
+desiredversion_beta=$(configfield "$currentversion" "beta")
 
 # If beta is set and the beta value for this bios is not null, use it.
 [[ -z $beta || -z $desiredversion_beta ]] || desiredversion=$desiredversion_beta
 
-# Args aren't differentiated by samsung/beta/etc currently
+# Args aren't differentiated by beta/not currently..
 desiredargs=$(configfield "$currentversion" "args")
 
 echo >&2 "Desired version: ${desiredversion:-<none>}"
