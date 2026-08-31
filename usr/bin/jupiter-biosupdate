@@ -7,7 +7,6 @@ JUPITER_BIOS_DIR=${JUPITER_BIOS_DIR-}
 
 # BIOS versions that can be updated and to what
 # 'default'      - specifies what BIOS this version should be updated to by default
-# 'args'         - additional args this update should pass to the updater (not used currently)
 # 'auto'         - whether or not to update with --auto
 #
 # - BIOS 19+ are EV2 bios, and can carry forward to the newest.
@@ -23,84 +22,84 @@ JUPITER_BIOS_DIR=${JUPITER_BIOS_DIR-}
 #          For post-100 BIOS, disabled auto install to prompt the user from steam, due to the more intrusive update
 #          process that turns the screen off for a bit.
 BIOS_VERSION_MAP='{
-                      "F7A0019": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0020": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0021": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0022": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0023": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0024": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0025": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0026": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0027": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0028": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0029": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0030": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0031": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0032": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0042": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0100": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0101": { "default": "F7A0133", "args": "", "auto": "false" }
-                    , "F7A0102": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0103": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0104": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0105": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0106": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0107": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0108": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0109": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0110": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0111": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0112": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0113": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0114": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0115": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0116": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0117": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0118": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0119": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0120": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0121": { "default": "F7A0133", "args": "", "auto": "true" }
-                    , "F7A0131": { "default": "F7A0133", "args": "", "auto": "true" }
+                      "F7A0019": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0020": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0021": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0022": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0023": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0024": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0025": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0026": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0027": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0028": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0029": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0030": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0031": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0032": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0042": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0100": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0101": { "default": "F7A0133", "auto": "false" }
+                    , "F7A0102": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0103": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0104": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0105": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0106": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0107": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0108": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0109": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0110": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0111": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0112": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0113": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0114": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0115": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0116": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0117": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0118": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0119": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0120": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0121": { "default": "F7A0133", "auto": "true" }
+                    , "F7A0131": { "default": "F7A0133", "auto": "true" }
 
-                    , "F7G0003R2":  { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0003":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0004":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0005":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0006":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0007":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0008":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0009":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0010":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0011":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0012":    { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0012T10": { "default": "F7G0014T20", "args": "", "auto": "false" }
-                    , "F7G0013":    { "default": "F7G0014T20", "args": "", "auto": "true" }
-                    , "F7G0014":    { "default": "F7G0014T20", "args": "", "auto": "true" }
-                    , "F7G0014T20": { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0020":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0021":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0022":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0023":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0024":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0025":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0026":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0027":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0028":    { "default": "F7G0114",    "args": "", "auto": "true" }
-                    , "F7G0100":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0101":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0101T24": { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0102T01": { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0103":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0104":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0105":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0106":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0107":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0108":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0109":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0110":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0111":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0112":    { "default": "F7G0114",    "args": "", "auto": "false" }
-                    , "F7G0113":    { "default": "F7G0114",    "args": "", "auto": "false" }
+                    , "F7G0003R2":  { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0003":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0004":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0005":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0006":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0007":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0008":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0009":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0010":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0011":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0012":    { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0012T10": { "default": "F7G0014T20", "auto": "false" }
+                    , "F7G0013":    { "default": "F7G0014T20", "auto": "true" }
+                    , "F7G0014":    { "default": "F7G0014T20", "auto": "true" }
+                    , "F7G0014T20": { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0020":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0021":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0022":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0023":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0024":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0025":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0026":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0027":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0028":    { "default": "F7G0114",    "auto": "true" }
+                    , "F7G0100":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0101":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0101T24": { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0102T01": { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0103":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0104":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0105":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0106":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0107":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0108":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0109":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0110":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0111":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0112":    { "default": "F7G0114",    "auto": "false" }
+                    , "F7G0113":    { "default": "F7G0114",    "auto": "false" }
                   }'
 
 # Bios to attempt to install
@@ -209,7 +208,6 @@ configfield() {
 
 # Check config table for desired version
 desiredversion=$(configfield "$currentversion" "default")
-desiredargs=$(configfield "$currentversion" "args")
 
 echo >&2 "Desired version: ${desiredversion:-<none>}"
 
@@ -266,8 +264,9 @@ if [[ -n $automode ]]; then
 fi
 
 # Run with -N outside --auto mode
+flasher_args=()
 if [[ -z $automode ]]; then
-  desiredargs="-N $desiredargs"
+  flasher_args+=("-N")
 fi
 
 # Try to flash
@@ -275,7 +274,7 @@ fi
 cd "$(dirname "$BIOS_FLASHER")"
 
 # shellcheck disable=SC2206 # desiredargs expanded on purpose
-cmd=("$BIOS_FLASHER" "$biosfile" -all -AC $desiredargs)
+cmd=("$BIOS_FLASHER" "$biosfile" -all -AC "${flasher_args[@]}")
 info "Running: " "${cmd[@]@Q}"
 ret=0
 "${cmd[@]}" || ret=$?
