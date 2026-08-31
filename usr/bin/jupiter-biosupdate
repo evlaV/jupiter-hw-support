@@ -271,7 +271,9 @@ fi
 
 # Try to flash
 #   Flasher is cwd-sensitive
-cd "$(dirname "$BIOS_FLASHER")"
+
+# The tool can read config files from its pwd
+cd -- "$(dirname -- "$BIOS_FLASHER")"
 
 # shellcheck disable=SC2206 # desiredargs expanded on purpose
 cmd=("$BIOS_FLASHER" "$biosfile" -all -AC "${flasher_args[@]}")
