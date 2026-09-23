@@ -14,18 +14,30 @@ shopt -s extglob
 
 firmware_update_required ()
 {
-    local -i rc=1
+    local -i check_status=0
     local status=
+    local check_output=
+
+    check_output=$("${CHECK_CMD[@]}") || check_status=$?
+
     while read -r status
     do
         echo "$status"
         case $status in
             (time_estimate=+([0-9])) EXPECTED_TTL=${status#*=} ;;
-            (needs_update=[1-9]*)    rc=0 ;;
         esac
-    done < <("${CHECK_CMD[@]}" | grep -iE '^[a-z]')
+    done <<< "$check_output"
 
-    return ${rc}
+    # jupiter-controller-update --check exit code
+    # exit 0 - firmware is up to date
+    # exit 7 - firmware update needed
+    # anything else - the check itself failed (real error)
+    case $check_status in
+        (0) return 1 ;;
+        (7) return 0 ;;
+        (*) echo "!! '${CHECK_CMD[*]}' exited ${check_status}" >&2
+            exit 1 ;;
+    esac
 }
 
 fake_update_requested ()
