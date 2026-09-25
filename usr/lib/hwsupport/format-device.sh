@@ -16,6 +16,11 @@ EXTENDED_OPTIONS="nodiscard"
 # default owner for the new filesystem
 OWNER="1000:1000"
 EXTRA_MKFS_ARGS=()
+# A 1 MiB partition start is offset from a 4 MiB SD allocation unit.
+# Parted recommends 4 MiB alignment for some flash devices.
+# Reported device alignment takes precedence over this fallback.
+# https://www.gnu.org/software/parted/manual/html_node/mkpart.html
+PARTITION_START="4MiB"
 # Increase the version number every time a new option is added
 VERSION_NUMBER=1
 
@@ -43,6 +48,37 @@ fi
 
 EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
 
+function usb_needs_parted_alignment()
+{
+    local _sysfs="/sys/block/${1##*/}"
+    local _offset _size _attribute
+
+    # Let Parted account for reported or indeterminate alignment offsets.
+    _offset="$(cat "$_sysfs/alignment_offset" 2>/dev/null)" || _offset=0
+    if [[ "$_offset" == "-1" ]]; then
+        return 0
+    fi
+    if [[ "$_offset" =~ ^[0-9]{1,10}$ ]]; then
+        _offset=$((10#$_offset))
+        if (( _offset > 0 && _offset <= 4294967295 && _offset % 512 == 0 )); then
+            return 0
+        fi
+    fi
+
+    # For example, an 8 MiB optimal I/O size needs Parted's normal alignment.
+    for _attribute in physical_block_size minimum_io_size optimal_io_size; do
+        _size="$(cat "$_sysfs/queue/$_attribute" 2>/dev/null)" || continue
+        [[ "$_size" =~ ^[0-9]{1,10}$ ]] || continue
+        _size=$((10#$_size))
+        if (( _size >= 512 && _size <= 4294967295 &&
+              _size % 512 == 0 && 4194304 % _size != 0 )); then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 # We only support SD/MMC and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
@@ -51,9 +87,19 @@ case "$STORAGE_DEVICE" in
         ;;
     /dev/mmcblk[0-9])
         STORAGE_PARTITION="${STORAGE_DEVICE}p1"
+        # Use the reported allocation unit when it is larger.
+        SD_AU_SIZE="$(cat "/sys/block/${STORAGE_DEVICE##*/}/device/preferred_erase_size" 2>/dev/null)" || SD_AU_SIZE=0
+        case "$SD_AU_SIZE" in
+            8388608|12582912|16777216|25165824|33554432|67108864)
+                PARTITION_START="${SD_AU_SIZE}B"
+                ;;
+        esac
         ;;
     /dev/sd[a-z])
         STORAGE_PARTITION="${STORAGE_DEVICE}1"
+        if usb_needs_parted_alignment "$STORAGE_DEVICE"; then
+            PARTITION_START="0%"
+        fi
         ;;
     *)
         echo "Unknown or unsupported device: $STORAGE_DEVICE"
@@ -131,7 +177,7 @@ dd if=/dev/zero of="$STORAGE_DEVICE" bs=512 count=1024
 # Format as EXT4 with casefolding for proton compatibility
 echo "stage=formatting"
 sync
-parted --script "$STORAGE_DEVICE" mklabel gpt mkpart primary 0% 100%
+parted --script "$STORAGE_DEVICE" mklabel gpt mkpart primary "$PARTITION_START" 100%
 udevadm settle
 mkfs.ext4 -m 0 -O casefold -E "$EXTENDED_OPTIONS" "${EXTRA_MKFS_ARGS[@]}" -F "$STORAGE_PARTITION"
 udevadm settle
