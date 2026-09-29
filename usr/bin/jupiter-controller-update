@@ -5,21 +5,24 @@ set -euo pipefail
 info() { printf "%s\n" "$*" >&2; }
 die() { info "!! $*"; exit 1; }
 
+board_name="$(cat /sys/class/dmi/id/board_name || true)"
+board_vendor="$(cat /sys/class/dmi/id/board_vendor || true)"
 is_steamdeck() {
-  local board_name="$(cat /sys/class/dmi/id/board_name || true)"
-  local board_vendor="$(cat /sys/class/dmi/id/board_vendor || true)"
-
   [[ $board_vendor = "Valve" && ( $board_name = "Jupiter" || $board_name = "Galileo" ) ]]
 }
 
-# Is this an EV2 or older unit
-is_ev2() {
+# Is this a jupiter EV2 or older unit
+is_jupiter_ev2() {
+  [[ $board_vendor = "Valve" && $board_name = "Jupiter" ]] || return 1
+
   local product_serial
   product_serial="$(cat /sys/devices/virtual/dmi/id/product_serial)" || die "Cannot check device serial"
   local product_year="${product_serial:4:1}"
   local product_week="${product_serial:5:2}"
 
-  [[ "$product_year" -eq "1" && "$product_week" -lt "33" ]]
+  # Careful: `[[ ... ]]` + `-eq` _evals_ the lhs string, recursively, until it gets a number. seriously.
+  # friends don't let friends use bash.
+  [ "$product_year" -eq "1" ] 2>/dev/null && [ "$product_week" -lt "33" ] 2>/dev/null
 }
 
 ##
@@ -48,7 +51,7 @@ if ! is_steamdeck && [[ ${JUPITER_CONTROLLER_UPDATE_SKIP_STEAMDECK_CHECK-} != "1
   exit 0
 fi
 
-if is_ev2; then
+if is_jupiter_ev2; then
   # Last working firmware for JUPITER EV2. For older units we no longer support. 
   # Only needed for D21 units (all we built during this period
   # D21 Date 8-Jul-2022
