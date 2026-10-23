@@ -43,16 +43,16 @@ fi
 
 EXTENDED_OPTIONS="$EXTENDED_OPTIONS,root_owner=$OWNER"
 
-# We only support SD/MMC and USB mass-storage devices
+# We support SD/MMC, NVMe, VirtIO-blk and USB mass-storage devices
 case "$STORAGE_DEVICE" in
     "")
         echo "Usage: $(basename $0) [--version] [--force] [--skip-validation] [--full] [--quick] [--owner <uid>:<gid>] [--label <label>] --device <device>"
         exit 19 #ENODEV
         ;;
-    /dev/mmcblk[0-9])
+    /dev/mmcblk[0-9] | /dev/nvme[0-9]n[0-9])
         STORAGE_PARTITION="${STORAGE_DEVICE}p1"
         ;;
-    /dev/sd[a-z])
+    /dev/sd[a-z] | /dev/vd[a-z])
         STORAGE_PARTITION="${STORAGE_DEVICE}1"
         ;;
     *)
@@ -63,6 +63,15 @@ esac
 if [[ ! -e "$STORAGE_DEVICE" ]]; then
     exit 19 #ENODEV
 fi
+
+# Check that none of the partitions of that drive is a system partition
+PARTLIST=$(lsblk -J -o PATH,TYPE "$STORAGE_DEVICE" | jq -r '.. | objects | select(.type=="part") | .path')
+for part in $PARTLIST; do
+    if is_os_partition "$part"; then
+        echo "Cannot format drive $STORAGE_DEVICE containing system partition $part"
+        exit 16 #EBUSY
+    fi
+done
 
 STORAGE_PARTBASE="${STORAGE_PARTITION#/dev/}"
 
