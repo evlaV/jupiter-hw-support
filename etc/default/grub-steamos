@@ -13,13 +13,21 @@
 # 4 is the maximum that is supported across RDNA2 + RDNA3.
 # Any more results in a hang at startup on RDNA3.
 
+# Holo: amdgpu.dcdebugmask=0x40000 bit is set to disable the custom backlight
+# brightness curve support. Needed in order to
+# 1. Fix bug causing only 97% of brightness to be usable
+# 2. Allow the kernel to move closer to upstream
+# 3. Not break userspace currently expecting linear mapping
+# See
+# https://gitlab.steamos.cloud/holo-team/tasks/-/work_items/2237#note_358276
+
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} \
 log_buf_len=4M \
 amd_iommu=off \
 amdgpu.lockup_timeout=5000,10000,10000,5000 \
 ttm.pages_min=2097152 \
 amdgpu.sched_hw_submission=4 \
-amdgpu.dcdebugmask=0x20000 \
+amdgpu.dcdebugmask=0x60000 \
 audit=0 \
 fbcon=vc:4-6 \
 fsck.mode=auto \
