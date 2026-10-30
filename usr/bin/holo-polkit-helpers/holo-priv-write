@@ -3,6 +3,8 @@
 set -euo pipefail
 shopt -s nullglob
 
+USER_GID=1000
+
 if [[ $EUID -ne 0 ]];
 then
     exec pkexec --disable-internal-agent "$0" "$@"
@@ -42,7 +44,7 @@ function CommitWrite()
         printf "%s" "$WRITE_VALUE" > "$WRITE_PATH"
     fi
 
-    chgrp deck "$WRITE_PATH"
+    chgrp +"$USER_GID" "$WRITE_PATH"
     chmod g+w "$WRITE_PATH"
     exit 0
 }
