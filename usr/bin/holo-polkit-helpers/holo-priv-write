@@ -42,7 +42,7 @@ function CommitWrite()
         printf "%s" "$WRITE_VALUE" > "$WRITE_PATH"
     fi
 
-    chgrp deck "$WRITE_PATH"
+    chgrp +"$USER_GID" "$WRITE_PATH"
     chmod g+w "$WRITE_PATH"
     exit 0
 }
@@ -53,6 +53,12 @@ function DeclineWrite()
     exit 1
 }
 
+if [ -z "${PKEXEC_UID:-}" ]; then
+    Log "this script must be run using pkexec"
+    exit 1
+fi
+
+USER_GID="$(id -g "${PKEXEC_UID}")"
 
 Log "checking: $WRITE_PATH"
 

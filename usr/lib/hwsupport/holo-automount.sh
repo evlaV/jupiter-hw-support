@@ -22,8 +22,9 @@ fi
 ACTION=$1
 DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
-DECK_UID=$(id -u deck)
-DECK_GID=$(id -g deck)
+USER_UID=1000
+USER_GID=1000
+USER_NAME=$(id -n -u $USER_UID)
 
 send_steam_url()
 {
@@ -33,7 +34,7 @@ send_steam_url()
   if pgrep -x "steam" > /dev/null; then
       # TODO use -ifrunning and check return value - if there was a steam process and it returns -1, the message wasn't sent
       # need to retry until either steam process is gone or -ifrunning returns 0, or timeout i guess
-      systemd-run -M ${DECK_UID}@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
+      systemd-run -M ${USER_UID}@ --user --collect --wait sh -c "./.steam/root/ubuntu12_32/steam steam://${command}/${encoded@Q}"
       echo "Sent URL to steam: steam://${command}/${arg} (steam://${command}/${encoded})"
   else
       echo "Could not send steam URL steam://${command}/${arg} (steam://${command}/${encoded}) -- steam not running"
@@ -90,12 +91,12 @@ do_mount()
                                  "block_devices/${DEVBASE}"      \
                                  Filesystem Mount                \
                                  'a{sv}' 3                       \
-                                 as-user s deck                  \
+                                 as-user s "$USER_NAME"          \
                                  auth.no_user_interaction b true \
                                  options s "$OPTS")
 
-    # Ensure that the deck user can write to the root directory
-    if ! setpriv --clear-groups --reuid "${DECK_UID}" --regid "${DECK_GID}" test -w "${mount_point}"; then
+    # Ensure that the user can write to the root directory
+    if ! setpriv --clear-groups --reuid "${USER_UID}" --regid "${USER_GID}" test -w "${mount_point}"; then
         chmod 777 "${mount_point}" || true
     fi
 
